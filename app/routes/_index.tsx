@@ -44,7 +44,23 @@ export default function Home() {
           }
         }
       }
-      // Case 2: GitLab Pages URL (namespace.gitlab.io/project)
+      // Case 2: Self-hosted GitLab (git.esempla.systems/namespace/project)
+      else if (hostname === "git.esempla.systems") {
+        const parts = pathname.split("/");
+        if (parts.length >= 2) {
+          // Support nested namespaces (e.g., /company/team/project)
+          const pathParts = parts.filter(Boolean);
+          if (pathParts.length >= 2) {
+            const namespace = pathParts.slice(0, -1).join("/");
+            const project = pathParts[pathParts.length - 1];
+            if (namespace && project) {
+              // For local testing, redirect to localhost
+              targetUrl = `http://localhost:5173/${namespace}/${project}${action === "chat" ? "/chat" : ""}`;
+            }
+          }
+        }
+      }
+      // Case 3: GitLab Pages URL (namespace.gitlab.io/project)
       else if (hostname.endsWith(".gitlab.io")) {
         const namespace = hostname.replace(".gitlab.io", "");
         if (namespace && pathname) {
@@ -57,7 +73,7 @@ export default function Home() {
 
       if (!targetUrl) {
         setError(
-          "Invalid GitLab URL format. Please use gitlab.com/namespace/project or namespace.gitlab.io/project",
+          "Invalid GitLab URL format. Please use gitlab.com/namespace/project, git.esempla.systems/namespace/project, or namespace.gitlab.io/project",
         );
         return;
       }
@@ -70,7 +86,7 @@ export default function Home() {
   };
 
   const handleTryExample = () => {
-    setUrl("gitlab.com/langchain-ai/langgraph");
+    setUrl("git.esempla.systems/business/ani");
     setError(null);
   };
 
@@ -189,7 +205,7 @@ export default function Home() {
                         name="github-url"
                         id="github-url"
                         className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 pl-3 pr-28 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        placeholder="Example: gitlab.com/langchain-ai/langgraph"
+                        placeholder="Example: git.esempla.systems/business/ani"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                       />

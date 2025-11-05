@@ -68,6 +68,7 @@ export function getRepoData(requestData: RequestData): RepoData {
     requestHost === "gitmcp.io" ||
     requestHost === HOST_TEMP_URL ||
     requestHost === "git-mcp.idosalomon.workers.dev" ||
+    requestHost === "git.esempla.systems" ||
     requestHost.includes("localhost")
   ) {
     // Extract namespace/project from path
@@ -158,6 +159,7 @@ export function getRepoDataFromUrl(url: string): MinimalRepoData {
   const urlReference = urlWithoutProtocol
     .replace(".gitlab.io", ".gitmcp.io")
     .replace(/^gitlab\.com/, "gitmcp.io")
+    .replace(/^git\.esempla\.systems/, "gitmcp.io")
     .replace(HOST_TEMP_URL, "gitmcp.io")
     .replace("git-mcp.idosalomon.workers.dev", "gitmcp.io")
     .replace(/^localhost:?[0-9]+/, "gitmcp.io");

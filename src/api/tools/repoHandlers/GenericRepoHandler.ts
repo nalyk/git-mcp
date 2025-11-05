@@ -56,12 +56,12 @@ class GenericRepoHandler implements RepoHandler {
             };
           }
 
-          if (badgeCountAllowedRepos.includes(project.project)) {
+          if (badgeCountAllowedRepos.includes(project.repo)) {
             ctx.waitUntil(
               incrementRepoViewCount(
                 env as CloudflareEnvironment,
-                project.namespace,
-                project.project,
+                project.owner,
+                project.repo,
               ).catch((err) => {
                 console.error("Error incrementing project view count:", err);
               }),
@@ -75,8 +75,8 @@ class GenericRepoHandler implements RepoHandler {
                 text: JSON.stringify({
                   library,
                   libraryTitle: project.title,
-                  namespace: project.namespace,
-                  project: project.project,
+                  namespace: project.owner,
+                  project: project.repo,
                 }),
               },
             ],
@@ -90,7 +90,9 @@ class GenericRepoHandler implements RepoHandler {
         paramsSchema: {
           namespace: z
             .string()
-            .describe("The GitLab repository namespace (username or organization)"),
+            .describe(
+              "The GitLab repository namespace (username or organization)",
+            ),
           project: z.string().describe("The GitLab repository name"),
         },
         cb: async ({ namespace, project }) => {
@@ -110,7 +112,9 @@ class GenericRepoHandler implements RepoHandler {
         paramsSchema: {
           namespace: z
             .string()
-            .describe("The GitLab repository namespace (username or organization)"),
+            .describe(
+              "The GitLab repository namespace (username or organization)",
+            ),
           project: z.string().describe("The GitLab repository name"),
           query: z
             .string()
@@ -133,7 +137,9 @@ class GenericRepoHandler implements RepoHandler {
         paramsSchema: {
           namespace: z
             .string()
-            .describe("The GitLab repository namespace (username or organization)"),
+            .describe(
+              "The GitLab repository namespace (username or organization)",
+            ),
           project: z.string().describe("The GitLab repository name"),
           query: z
             .string()
@@ -215,10 +221,10 @@ const mapping = rawMapping as unknown as {
   [key: string]: {
     title: string;
     repoName: `${string}/${string}`;
-    gitlabUrl: string;
+    githubUrl: string;
     description: string;
-    namespace: string;
-    project: string;
+    owner: string;
+    repo: string;
   };
 };
 const mappingCaseInsensitive = Object.fromEntries(
@@ -226,5 +232,5 @@ const mappingCaseInsensitive = Object.fromEntries(
 ) as Record<string, (typeof mapping)[string]>;
 
 const mappingByRepoCaseInsensitive = Object.fromEntries(
-  Object.entries(mapping).map(([, value]) => [value.project.toLowerCase(), value]),
+  Object.entries(mapping).map(([, value]) => [value.repo.toLowerCase(), value]),
 ) as Record<string, (typeof mapping)[string]>;

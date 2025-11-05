@@ -183,3 +183,5 @@ dist
 playwright-results/
 playwright-report/
 test-results/
+
+.claude
