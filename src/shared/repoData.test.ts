@@ -19,7 +19,7 @@ const testCases: {
     expected: {
       namespace: "mrdoob",
       project: "three.js",
-      urlType: "github",
+      urlType: "gitlab",
       host: "git-mcp.idosalomon.workers.dev",
     },
   },
@@ -32,7 +32,7 @@ const testCases: {
     expected: {
       namespace: "mrdoob",
       project: "three.js",
-      urlType: "github",
+      urlType: "gitlab",
       host: "gitmcp.io",
     },
   },
@@ -58,7 +58,7 @@ const testCases: {
     expected: {
       namespace: "docs",
       project: null,
-      urlType: "github",
+      urlType: "gitlab",
       host: "gitmcp.io",
     },
   },
@@ -87,7 +87,7 @@ const testCases: {
     expected: {
       namespace: "myOwner",
       project: "myRepo",
-      urlType: "github",
+      urlType: "gitlab",
       host: HOST_TEMP_URL,
     },
   },
@@ -116,8 +116,40 @@ const testCases: {
     expected: {
       namespace: "mrdoob",
       project: "three.js",
-      urlType: "github",
+      urlType: "gitlab",
       host: "localhost",
+    },
+  },
+  {
+    title: "nested groups (group/subgroup/project)",
+    input: {
+      requestHost: "gitmcp.io",
+      requestUrls: [
+        "https://gitmcp.io/mygroup/mysubgroup/myproject",
+        "/mygroup/mysubgroup/myproject",
+      ],
+    },
+    expected: {
+      namespace: "mygroup/mysubgroup",
+      project: "myproject",
+      urlType: "gitlab",
+      host: "gitmcp.io",
+    },
+  },
+  {
+    title: "deeply nested groups (group/sub1/sub2/project)",
+    input: {
+      requestHost: "gitmcp.io",
+      requestUrls: [
+        "https://gitmcp.io/company/team/subteam/myproject",
+        "/company/team/subteam/myproject",
+      ],
+    },
+    expected: {
+      namespace: "company/team/subteam",
+      project: "myproject",
+      urlType: "gitlab",
+      host: "gitmcp.io",
     },
   },
 ];
@@ -170,6 +202,20 @@ const flatTestCases = {
     "docs.gitlab.io",
     "gitmcp.io/docs",
     "localhost:3000/docs",
+  ],
+  "mygroup/mysubgroup/myproject": [
+    "https://gitlab.com/mygroup/mysubgroup/myproject",
+    "gitlab.com/mygroup/mysubgroup/myproject",
+    "https://gitmcp.io/mygroup/mysubgroup/myproject",
+    "gitmcp.io/mygroup/mysubgroup/myproject",
+    "mygroup/mysubgroup/myproject",
+  ],
+  "company/team/subteam/myproject": [
+    "https://gitlab.com/company/team/subteam/myproject",
+    "gitlab.com/company/team/subteam/myproject",
+    "https://gitmcp.io/company/team/subteam/myproject",
+    "gitmcp.io/company/team/subteam/myproject",
+    "company/team/subteam/myproject",
   ],
 };
 describe("getRepoDataFromUrl", () => {

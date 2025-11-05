@@ -20,9 +20,9 @@ export function getRepoData(url: string): {
   // Different URL patterns
   const patterns = [
     // gitlab.com/namespace/project
-    /^(?:www\.)?github\.com\/([^\/]+)\/([^\/]+)/,
+    /^(?:www\.)?gitlab\.com\/([^\/]+)\/([^\/]+)/,
     // namespace.gitlab.io/project
-    /^(?:www\.)?([^\/]+)\.github\.io\/([^\/]+)/,
+    /^(?:www\.)?([^\/]+)\.gitlab\.io\/([^\/]+)/,
     // gitmcp.io/namespace/project
     /^(?:www\.)?gitmcp\.io\/([^\/]+)\/([^\/]+)/,
     // namespace.gitmcp.io/project
@@ -30,7 +30,7 @@ export function getRepoData(url: string): {
     // namespace.gitmcp.io
     /^(?:www\.)?([^\/]+)\.gitmcp\.io/,
     // namespace.gitlab.io
-    /^(?:www\.)?([^\/]+)\.github\.io/,
+    /^(?:www\.)?([^\/]+)\.gitlab\.io/,
     // gitmcp.io/docs
     /^(?:www\.)?gitmcp\.io\/(docs)/,
     // Simple namespace/project format

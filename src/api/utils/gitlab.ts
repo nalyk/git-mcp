@@ -23,7 +23,7 @@ export async function fetchFileFromGitLab(
   branch: string,
   path: string,
   env: Env,
-  useAuth = false,
+  useAuth = true,
 ): Promise<string | null> {
   return await fetchRawFile(namespace, project, branch, path, env, useAuth);
 }

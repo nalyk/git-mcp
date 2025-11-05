@@ -215,7 +215,7 @@ const mapping = rawMapping as unknown as {
   [key: string]: {
     title: string;
     repoName: `${string}/${string}`;
-    githubUrl: string;
+    gitlabUrl: string;
     description: string;
     namespace: string;
     project: string;

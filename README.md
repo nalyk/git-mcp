@@ -55,6 +55,9 @@ https://gitlab.com/user-attachments/assets/fbf1b4a7-f9f0-4c0e-831c-4d64faae2c45
 - ☁️ **Zero Setup**: GitMCP runs in the cloud. Simply add the chosen GitMCP URL as an MCP server in your IDE — no downloads, installations, signups, or changes are required.
 - 💬 **Embedded Chat**: Start quickly by chatting directly with the repository's documentation through our in-browser chat!
 - ✅ **Open, Free, and Private**: GitMCP is open-source and completely free to use. It doesn't collect personal information or store queries. You can even self-host it!
+- 🔒 **Private Repository Support**: Works with both public and private GitLab repositories. Simply configure your GitLab access token to access private projects.
+- 🏢 **Self-Hosted GitLab**: Full support for self-hosted GitLab instances. Configure your GitLab instance URL to use GitMCP with your organization's private GitLab server.
+- 📁 **Nested Group Support**: Seamlessly handles GitLab's nested group structure (e.g., `company/team/subteam/project`).
 
 <video src="https://gitlab.com/user-attachments/assets/2c3afaf9-6c08-436e-9efd-db8710554430"></video>
 
@@ -213,6 +216,43 @@ Or use the following configuration:
 For more details on configuring MCP servers in Augment Code, visit [the Augment Code documentation](https://docs.augmentcode.com/setup-augment/mcp).
 
 > **Note:** Remember to replace `{owner}` and `{repo}` with the actual GitLab username/organization and repository name. You can also use the dynamic endpoint `https://gitmcp.io/docs` to allow your AI to access any repository on demand.
+
+### Step 3: Configuration for Private Repositories and Self-Hosted GitLab (Optional)
+
+If you need to access private repositories or use a self-hosted GitLab instance, you'll need to configure environment variables:
+
+#### For Private Repositories
+
+1. Create a GitLab Personal Access Token:
+   - Go to your GitLab profile > Access Tokens
+   - Create a new token with `read_api` and `read_repository` scopes
+   - Copy the generated token
+
+2. Set the `GITLAB_TOKEN` environment variable in your deployment:
+   ```bash
+   GITLAB_TOKEN="your-gitlab-personal-access-token"
+   ```
+
+#### For Self-Hosted GitLab
+
+If you're using a self-hosted GitLab instance, also set the `GITLAB_API_BASE_URL` environment variable:
+
+```bash
+GITLAB_TOKEN="your-gitlab-personal-access-token"
+GITLAB_API_BASE_URL="https://gitlab.yourcompany.com/api/v4"
+```
+
+#### Nested Groups
+
+GitLab supports nested groups (e.g., `company/team/subteam/project`). GitMCP handles these automatically! Simply use the full path:
+
+```
+gitmcp.io/company/team/subteam/myproject
+```
+
+The system will correctly identify:
+- Namespace: `company/team/subteam`
+- Project: `myproject`
 
 ## ⚙ How It Works
 

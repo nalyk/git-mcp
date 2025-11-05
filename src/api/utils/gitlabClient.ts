@@ -194,6 +194,13 @@ export async function gitlabApiRequest(
     // Update rate limit info from response headers
     updateRateLimitFromHeaders(response.headers);
 
+    // Handle authentication errors for private repositories
+    if ((response.status === 401 || response.status === 403) && !env.GITLAB_TOKEN) {
+      console.warn(
+        `GitLab API returned ${response.status}. This may be a private repository requiring authentication. Please set GITLAB_TOKEN environment variable.`,
+      );
+    }
+
     // Handle rate limiting (status 429 for GitLab)
     if (response.status === 429) {
       const responseBody = await response.text();
@@ -367,11 +374,11 @@ export async function fetchRawFile(
   branch: string,
   path: string,
   env: Env,
-  useAuth = false,
+  useAuth = true,
 ): Promise<string | null> {
   const url = constructGitlabUrl(namespace, project, branch, path, env);
 
-  // GitLab raw content may need authentication for private repos
+  // GitLab raw content authentication (works for both public and private repos)
   const response = await gitlabApiRequest(url, {}, env, 0, useAuth);
 
   if (!response || !response.ok) {
