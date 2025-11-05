@@ -46,11 +46,11 @@ describe("Tools Module", () => {
         expectedTools: {
           fetch_myrepo_documentation: {
             description:
-              "Fetch entire documentation file from GitHub repository: myorg/myrepo. Useful for general questions. Always call this tool first if asked about myorg/myrepo.",
+              "Fetch entire documentation file from GitLab repository: myorg/myrepo. Useful for general questions. Always call this tool first if asked about myorg/myrepo.",
           },
           search_myrepo_documentation: {
             description:
-              "Semantically search within the fetched documentation from GitHub repository: myorg/myrepo. Useful for specific queries.",
+              "Semantically search within the fetched documentation from GitLab repository: myorg/myrepo. Useful for specific queries.",
           },
           fetch_generic_url_content: {
             description:
@@ -58,7 +58,7 @@ describe("Tools Module", () => {
           },
           search_myrepo_code: {
             description:
-              'Search for code within the GitHub repository: "myorg/myrepo" using the GitHub Search API (exact match). Returns matching files for you to query further if relevant.',
+              'Search for code within the GitLab repository: "myorg/myrepo" using the GitLab Search API (exact match). Returns matching files for you to query further if relevant.',
           },
         },
       },
@@ -69,11 +69,11 @@ describe("Tools Module", () => {
         expectedTools: {
           fetch_myrepo_documentation: {
             description:
-              "Fetch entire documentation file from the myorg/myrepo GitHub Pages. Useful for general questions. Always call this tool first if asked about myorg/myrepo.",
+              "Fetch entire documentation file from the myorg/myrepo GitLab Pages. Useful for general questions. Always call this tool first if asked about myorg/myrepo.",
           },
           search_myrepo_documentation: {
             description:
-              "Semantically search within the fetched documentation from the myorg/myrepo GitHub Pages. Useful for specific queries.",
+              "Semantically search within the fetched documentation from the myorg/myrepo GitLab Pages. Useful for specific queries.",
           },
           fetch_generic_url_content: {
             description:
@@ -81,7 +81,7 @@ describe("Tools Module", () => {
           },
           search_myrepo_code: {
             description:
-              'Search for code within the GitHub repository: "myorg/myrepo" using the GitHub Search API (exact match). Returns matching files for you to query further if relevant.',
+              'Search for code within the GitLab repository: "myorg/myrepo" using the GitLab Search API (exact match). Returns matching files for you to query further if relevant.',
           },
         },
       },
@@ -92,11 +92,11 @@ describe("Tools Module", () => {
         expectedTools: {
           fetch_generic_documentation: {
             description:
-              "Fetch documentation for any GitHub repository by providing owner and project name",
+              "Fetch documentation for any GitLab repository by providing namespace and project name",
           },
           search_generic_code: {
             description:
-              "Search for code in any GitHub repository by providing owner, project name, and search query. Returns matching files. Supports pagination with 30 results per page.",
+              "Search for code in any GitLab repository by providing namespace, project name, and search query. Returns matching files. Supports pagination with 30 results per page.",
           },
           fetch_generic_url_content: {
             description:
@@ -104,11 +104,11 @@ describe("Tools Module", () => {
           },
           match_common_libs_owner_repo_mapping: {
             description:
-              "Match a library name to an owner/repo. Don't use it if you have an owner and repo already. Use this first if only a library name was provided. If found - you can use owner and repo to call other tools. If not found - try to use the library name directly in other tools.",
+              "Match a library name to an namespace/project. Don't use it if you have an namespace and project already. Use this first if only a library name was provided. If found - you can use namespace and project to call other tools. If not found - try to use the library name directly in other tools.",
           },
           search_generic_documentation: {
             description:
-              "Semantically search in documentation for any GitHub repository by providing owner, project name, and search query. Useful for specific queries.",
+              "Semantically search in documentation for any GitLab repository by providing namespace, project name, and search query. Useful for specific queries.",
           },
         },
       },

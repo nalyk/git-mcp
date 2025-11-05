@@ -20,32 +20,32 @@ function getCacheTTL(): number {
 
 /**
  * Cache key structure for repository file paths
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @returns Cache key
  */
-export function getRepoFilePathCacheKey(owner: string, repo: string): string {
-  return `repo:${owner}:${repo}`;
+export function getRepoFilePathCacheKey(namespace: string, project: string): string {
+  return `project:${namespace}:${project}`;
 }
 
 /**
  * Cache key structure for vector existence
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @returns Cache key
  */
-export function getIsIndexedCacheKey(owner: string, repo: string): string {
-  return `vector_exists:${owner}:${repo}`;
+export function getIsIndexedCacheKey(namespace: string, project: string): string {
+  return `vector_exists:${namespace}:${project}`;
 }
 
 /**
  * Cache key structure for fetchDocumentation results
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @returns Cache key
  */
-export function getFetchDocCacheKey(owner: string, repo: string): string {
-  return `fetch_doc:${owner}:${repo}`;
+export function getFetchDocCacheKey(namespace: string, project: string): string {
+  return `fetch_doc:${namespace}:${project}`;
 }
 
 /**
@@ -109,19 +109,19 @@ async function setInCache(
 
 /**
  * Get cached file path for a repository file
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param filename - File name
  * @param env - Environment with Cloudflare bindings
  * @returns Object with path and branch if found in cache, null otherwise
  */
 export async function getCachedFilePath(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   env: Env,
 ): Promise<{ path: string; branch: string } | null> {
   try {
-    const key = getRepoFilePathCacheKey(owner, repo);
+    const key = getRepoFilePathCacheKey(namespace, project);
     const result = await getFromCache(key, env);
     return result as { path: string; branch: string } | null;
   } catch (error) {
@@ -132,26 +132,26 @@ export async function getCachedFilePath(
 
 /**
  * Cache a file path for a repository file
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param filename - File name
  * @param path - File path within the repository
  * @param branch - Branch name (main, master, etc.)
  * @param env - Environment with Cloudflare bindings
  */
 export async function cacheFilePath(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   filename: string,
   path: string,
   branch: string,
   env: Env,
 ): Promise<void> {
   try {
-    const key = getRepoFilePathCacheKey(owner, repo);
+    const key = getRepoFilePathCacheKey(namespace, project);
     await setInCache(key, { path, branch }, env, getCacheTTL());
     console.log(
-      `Cached file path for ${filename} in ${owner}/${repo}: ${path}`,
+      `Cached file path for ${filename} in ${namespace}/${project}: ${path}`,
     );
   } catch (error) {
     console.warn("Failed to save to cache:", error);
@@ -208,18 +208,18 @@ export async function cacheRobotsTxt(
 
 /**
  * Check if vectors exist in cache for a repository
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param env - Environment with Cloudflare bindings
  * @returns Boolean indicating if vectors exist, or null if not in cache
  */
 export async function getIsIndexedFromCache(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   env: Env,
 ): Promise<boolean | null> {
   try {
-    const key = getIsIndexedCacheKey(owner, repo);
+    const key = getIsIndexedCacheKey(namespace, project);
     const result = await getFromCache(key, env);
     return result as boolean | null;
   } catch (error) {
@@ -230,21 +230,21 @@ export async function getIsIndexedFromCache(
 
 /**
  * Cache whether vectors exist for a repository
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param exists - Boolean indicating if vectors exist
  * @param env - Environment with Cloudflare bindings
  */
 export async function cacheIsIndexed(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   exists: boolean,
   env: Env,
 ): Promise<void> {
   try {
-    const key = getIsIndexedCacheKey(owner, repo);
+    const key = getIsIndexedCacheKey(namespace, project);
     await setInCache(key, exists, env, getCacheTTL());
-    console.log(`Cached vector existence for ${owner}/${repo}: ${exists}`);
+    console.log(`Cached vector existence for ${namespace}/${project}: ${exists}`);
   } catch (error) {
     console.warn("Failed to save vector existence to cache:", error);
   }
@@ -300,18 +300,18 @@ export async function fetchUrlContent<T extends keyof FormatOptions>({
 
 /**
  * Get cached fetchDocumentation result
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param env - Environment with Cloudflare bindings
  * @returns The cached FetchDocumentationResult or null if not found
  */
 export async function getCachedFetchDocResult(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   env: Env,
 ): Promise<FetchDocumentationResult | null> {
   try {
-    const key = getFetchDocCacheKey(owner, repo);
+    const key = getFetchDocCacheKey(namespace, project);
     const result = await getFromCache(key, env);
     return result as FetchDocumentationResult | null;
   } catch (error) {
@@ -322,24 +322,24 @@ export async function getCachedFetchDocResult(
 
 /**
  * Cache fetchDocumentation result
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param result - The FetchDocumentationResult to cache
  * @param ttl - Time to live in seconds
  * @param env - Environment with Cloudflare bindings
  */
 export async function cacheFetchDocResult(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   result: FetchDocumentationResult,
   ttl: number,
   env: Env,
 ): Promise<void> {
   try {
-    const key = getFetchDocCacheKey(owner, repo);
+    const key = getFetchDocCacheKey(namespace, project);
     await setInCache(key, result, env, ttl);
     console.log(
-      `Cached fetchDocumentation result for ${owner}/${repo} with TTL ${ttl}s`,
+      `Cached fetchDocumentation result for ${namespace}/${project} with TTL ${ttl}s`,
     );
   } catch (error) {
     console.warn("Failed to save fetchDoc result to cache:", error);

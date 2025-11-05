@@ -20,12 +20,12 @@ class GenericRepoHandler implements RepoHandler {
       {
         name: "match_common_libs_owner_repo_mapping",
         description:
-          "Match a library name to an owner/repo. Don't use it if you have an owner and repo already. Use this first if only a library name was provided. If found - you can use owner and repo to call other tools. If not found - try to use the library name directly in other tools.",
+          "Match a library name to an namespace/project. Don't use it if you have an namespace and project already. Use this first if only a library name was provided. If found - you can use namespace and project to call other tools. If not found - try to use the library name directly in other tools.",
         paramsSchema: {
           library: z
             .string()
             .describe(
-              "The name of the library to try and match to an owner/repo.",
+              "The name of the library to try and match to an namespace/project.",
             ),
         },
         cb: async ({ library }: { library: string }) => {
@@ -42,28 +42,28 @@ class GenericRepoHandler implements RepoHandler {
           const nameMapping = mappingCaseInsensitive;
           const repoMapping = mappingByRepoCaseInsensitive;
 
-          const repo =
+          const project =
             nameMapping[library?.toLowerCase()] ??
             repoMapping[library?.toLowerCase()];
-          if (!repo) {
+          if (!project) {
             return {
               content: [
                 {
                   type: "text",
-                  text: `No owner/repo found for ${library}`,
+                  text: `No namespace/project found for ${library}`,
                 },
               ],
             };
           }
 
-          if (badgeCountAllowedRepos.includes(repo.repo)) {
+          if (badgeCountAllowedRepos.includes(project.project)) {
             ctx.waitUntil(
               incrementRepoViewCount(
                 env as CloudflareEnvironment,
-                repo.owner,
-                repo.repo,
+                project.namespace,
+                project.project,
               ).catch((err) => {
-                console.error("Error incrementing repo view count:", err);
+                console.error("Error incrementing project view count:", err);
               }),
             );
           }
@@ -74,9 +74,9 @@ class GenericRepoHandler implements RepoHandler {
                 type: "text",
                 text: JSON.stringify({
                   library,
-                  libraryTitle: repo.title,
-                  owner: repo.owner,
-                  repo: repo.repo,
+                  libraryTitle: project.title,
+                  namespace: project.namespace,
+                  project: project.project,
                 }),
               },
             ],
@@ -86,18 +86,18 @@ class GenericRepoHandler implements RepoHandler {
       {
         name: "fetch_generic_documentation",
         description:
-          "Fetch documentation for any GitHub repository by providing owner and project name",
+          "Fetch documentation for any GitLab repository by providing namespace and project name",
         paramsSchema: {
-          owner: z
+          namespace: z
             .string()
-            .describe("The GitHub repository owner (username or organization)"),
-          repo: z.string().describe("The GitHub repository name"),
+            .describe("The GitLab repository namespace (username or organization)"),
+          project: z.string().describe("The GitLab repository name"),
         },
-        cb: async ({ owner, repo }) => {
+        cb: async ({ namespace, project }) => {
           const repoData: RepoData = {
-            owner,
-            repo,
-            urlType: "github",
+            namespace,
+            project,
+            urlType: "gitlab",
             host: "gitmcp.io",
           };
           return fetchDocumentation({ repoData, env, ctx });
@@ -106,21 +106,21 @@ class GenericRepoHandler implements RepoHandler {
       {
         name: "search_generic_documentation",
         description:
-          "Semantically search in documentation for any GitHub repository by providing owner, project name, and search query. Useful for specific queries.",
+          "Semantically search in documentation for any GitLab repository by providing namespace, project name, and search query. Useful for specific queries.",
         paramsSchema: {
-          owner: z
+          namespace: z
             .string()
-            .describe("The GitHub repository owner (username or organization)"),
-          repo: z.string().describe("The GitHub repository name"),
+            .describe("The GitLab repository namespace (username or organization)"),
+          project: z.string().describe("The GitLab repository name"),
           query: z
             .string()
             .describe("The search query to find relevant documentation"),
         },
-        cb: async ({ owner, repo, query }) => {
+        cb: async ({ namespace, project, query }) => {
           const repoData: RepoData = {
-            owner,
-            repo,
-            urlType: "github",
+            namespace,
+            project,
+            urlType: "gitlab",
             host: "gitmcp.io",
           };
           return searchRepositoryDocumentation({ repoData, query, env, ctx });
@@ -129,12 +129,12 @@ class GenericRepoHandler implements RepoHandler {
       {
         name: "search_generic_code",
         description:
-          "Search for code in any GitHub repository by providing owner, project name, and search query. Returns matching files. Supports pagination with 30 results per page.",
+          "Search for code in any GitLab repository by providing namespace, project name, and search query. Returns matching files. Supports pagination with 30 results per page.",
         paramsSchema: {
-          owner: z
+          namespace: z
             .string()
-            .describe("The GitHub repository owner (username or organization)"),
-          repo: z.string().describe("The GitHub repository name"),
+            .describe("The GitLab repository namespace (username or organization)"),
+          project: z.string().describe("The GitLab repository name"),
           query: z
             .string()
             .describe("The search query to find relevant code files"),
@@ -145,11 +145,11 @@ class GenericRepoHandler implements RepoHandler {
               "Page number to retrieve (starting from 1). Each page contains 30 results.",
             ),
         },
-        cb: async ({ owner, repo, query, page }) => {
+        cb: async ({ namespace, project, query, page }) => {
           const repoData: RepoData = {
-            owner,
-            repo,
-            urlType: "github",
+            namespace,
+            project,
+            urlType: "gitlab",
             host: "gitmcp.io",
           };
           return searchRepositoryCode({ repoData, query, page, env, ctx });
@@ -217,8 +217,8 @@ const mapping = rawMapping as unknown as {
     repoName: `${string}/${string}`;
     githubUrl: string;
     description: string;
-    owner: string;
-    repo: string;
+    namespace: string;
+    project: string;
   };
 };
 const mappingCaseInsensitive = Object.fromEntries(
@@ -226,5 +226,5 @@ const mappingCaseInsensitive = Object.fromEntries(
 ) as Record<string, (typeof mapping)[string]>;
 
 const mappingByRepoCaseInsensitive = Object.fromEntries(
-  Object.entries(mapping).map(([, value]) => [value.repo.toLowerCase(), value]),
+  Object.entries(mapping).map(([, value]) => [value.project.toLowerCase(), value]),
 ) as Record<string, (typeof mapping)[string]>;

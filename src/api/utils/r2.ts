@@ -1,13 +1,13 @@
 export async function fetchFileFromR2(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   filename: string,
   env: CloudflareEnvironment,
 ): Promise<string | null> {
-  if (owner && repo && env.DOCS_BUCKET) {
+  if (namespace && project && env.DOCS_BUCKET) {
     try {
       const obj = await env.DOCS_BUCKET.get(
-        owner + "/" + repo + "/" + filename,
+        namespace + "/" + project + "/" + filename,
       );
       if (obj) {
         return await new Response(obj.body).text();

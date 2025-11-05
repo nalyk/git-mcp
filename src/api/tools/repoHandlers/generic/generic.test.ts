@@ -22,8 +22,8 @@ describe("Generic Repo Handler", () => {
   it("should return library correctly ElevenLabs", async () => {
     const library = "ElevenLabs";
     const libraryTitle = "ElevenLabs";
-    const owner = "elevenlabs";
-    const repo = "elevenlabs-docs";
+    const namespace = "elevenlabs";
+    const project = "elevenlabs-docs";
 
     const tool = mockMcp.getTool("match_common_libs_owner_repo_mapping");
     const result = await tool.cb({ library });
@@ -34,8 +34,8 @@ describe("Generic Repo Handler", () => {
           text: JSON.stringify({
             library,
             libraryTitle,
-            owner,
-            repo,
+            namespace,
+            project,
           }),
         },
       ],
@@ -45,8 +45,8 @@ describe("Generic Repo Handler", () => {
   it("should return library correctly react-router", async () => {
     const library = "react-router";
     const libraryTitle = "React Router";
-    const owner = "remix-run";
-    const repo = "react-router";
+    const namespace = "remix-run";
+    const project = "react-router";
 
     const tool = mockMcp.getTool("match_common_libs_owner_repo_mapping");
     const result = await tool.cb({ library });
@@ -57,8 +57,8 @@ describe("Generic Repo Handler", () => {
           text: JSON.stringify({
             library,
             libraryTitle,
-            owner,
-            repo,
+            namespace,
+            project,
           }),
         },
       ],
@@ -68,8 +68,8 @@ describe("Generic Repo Handler", () => {
   it("should return library correctly Next-Auth", async () => {
     const library = "Next-Auth";
     const libraryTitle = "NextAuth.js";
-    const owner = "nextauthjs";
-    const repo = "next-auth";
+    const namespace = "nextauthjs";
+    const project = "next-auth";
 
     const tool = mockMcp.getTool("match_common_libs_owner_repo_mapping");
     const result = await tool.cb({ library });
@@ -80,8 +80,8 @@ describe("Generic Repo Handler", () => {
           text: JSON.stringify({
             library,
             libraryTitle,
-            owner,
-            repo,
+            namespace,
+            project,
           }),
         },
       ],
@@ -97,7 +97,7 @@ describe("Generic Repo Handler", () => {
       content: [
         {
           type: "text",
-          text: `No owner/repo found for ${library}`,
+          text: `No namespace/project found for ${library}`,
         },
       ],
     });

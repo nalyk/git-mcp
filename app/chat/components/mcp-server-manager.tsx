@@ -69,16 +69,16 @@ export const MCPServerManager = ({
       return null;
     }
 
-    const { owner, repo } = getRepoData(url);
+    const { namespace, project } = getRepoData(url);
 
-    if (!owner || (owner != "docs" && !repo)) {
+    if (!namespace || (namespace != "docs" && !project)) {
       toast.error("Invalid server URL");
       return null;
     }
 
-    const newUrl = ["https://gitmcp.io", owner, repo].filter(Boolean).join("/");
+    const newUrl = ["https://gitmcp.io", namespace, project].filter(Boolean).join("/");
 
-    const name = repo ? `${repo} Docs` : "MCP Docs";
+    const name = project ? `${project} Docs` : "MCP Docs";
 
     const id = crypto.randomUUID();
 
@@ -285,7 +285,7 @@ export const MCPServerManager = ({
                   className="relative z-0 placeholder:text-muted-foreground/60"
                 />
                 <p className="text-xs text-muted-foreground/80">
-                  A gitmcp.io server, a github.com repository, or a github.io
+                  A gitmcp.io server, a gitlab.com repository, or a gitlab.io
                   pages site
                 </p>
               </div>

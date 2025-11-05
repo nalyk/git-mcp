@@ -11,7 +11,7 @@ export default function App() {
         <title>GitMCP</title>
         <meta
           name="description"
-          content="Instantly create an MCP server for any GitHub project"
+          content="Instantly create an MCP server for any GitLab project"
         />
 
         <meta property="og:url" content="https://gitmcp.io/" />
@@ -19,7 +19,7 @@ export default function App() {
         <meta property="og:title" content="GitMCP" />
         <meta
           property="og:description"
-          content="Instantly create an MCP server for any GitHub project"
+          content="Instantly create an MCP server for any GitLab project"
         />
         <meta property="og:image" content="https://gitmcp.io/img/OG.png" />
 
@@ -29,7 +29,7 @@ export default function App() {
         <meta name="twitter:title" content="GitMCP" />
         <meta
           name="twitter:description"
-          content="Instantly create an MCP server for any GitHub project"
+          content="Instantly create an MCP server for any GitLab project"
         />
         <meta name="twitter:image" content="https://gitmcp.io/img/OG.png" />
         {/* All `meta` exports on all routes will render here */}

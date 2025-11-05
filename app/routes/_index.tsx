@@ -17,7 +17,7 @@ export default function Home() {
     // Basic URL validation
     let processedUrl = url.trim();
     if (!processedUrl) {
-      setError("Please use a valid GitHub URL");
+      setError("Please use a valid GitLab URL");
       return;
     }
 
@@ -33,31 +33,31 @@ export default function Home() {
       const hostname = urlObj.hostname;
       const pathname = urlObj.pathname.replace(/^\/+|\/+$/g, "");
 
-      // Case 1: GitHub repository URL (github.com/owner/repo)
-      if (hostname === "github.com") {
+      // Case 1: GitLab repository URL (gitlab.com/namespace/project)
+      if (hostname === "gitlab.com") {
         const parts = pathname.split("/");
         if (parts.length >= 2) {
-          const owner = parts[0];
-          const repo = parts[1];
-          if (owner && repo) {
-            targetUrl = `https://gitmcp.io/${owner}/${repo}${action === "chat" ? "/chat" : ""}`;
+          const namespace = parts[0];
+          const project = parts[1];
+          if (namespace && project) {
+            targetUrl = `https://gitmcp.io/${namespace}/${project}${action === "chat" ? "/chat" : ""}`;
           }
         }
       }
-      // Case 2: GitHub Pages URL (owner.github.io/repo)
-      else if (hostname.endsWith(".github.io")) {
-        const owner = hostname.replace(".github.io", "");
-        if (owner && pathname) {
-          const repo = pathname.split("/")[0];
-          if (repo) {
-            targetUrl = `https://${owner}.gitmcp.io/${repo}${action === "chat" ? "/chat" : ""}`;
+      // Case 2: GitLab Pages URL (namespace.gitlab.io/project)
+      else if (hostname.endsWith(".gitlab.io")) {
+        const namespace = hostname.replace(".gitlab.io", "");
+        if (namespace && pathname) {
+          const project = pathname.split("/")[0];
+          if (project) {
+            targetUrl = `https://${namespace}.gitmcp.io/${project}${action === "chat" ? "/chat" : ""}`;
           }
         }
       }
 
       if (!targetUrl) {
         setError(
-          "Invalid GitHub URL format. Please use github.com/owner/repo or owner.github.io/repo",
+          "Invalid GitLab URL format. Please use gitlab.com/namespace/project or namespace.gitlab.io/project",
         );
         return;
       }
@@ -70,22 +70,22 @@ export default function Home() {
   };
 
   const handleTryExample = () => {
-    setUrl("github.com/langchain-ai/langgraph");
+    setUrl("gitlab.com/langchain-ai/langgraph");
     setError(null);
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
-      {/* GitHub Link */}
+      {/* GitLab Link */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
         <a
-          href="https://github.com/idosal/git-mcp"
+          href="https://gitlab.com/idosal/git-mcp"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-2 rounded-md transition-colors duration-200 border border-gray-700 z-10"
         >
           <Github className="h-5 w-5" />
-          <span className="hidden sm:inline">GitHub</span>
+          <span className="hidden sm:inline">GitLab</span>
         </a>
       </div>
 
@@ -112,7 +112,7 @@ export default function Home() {
                     strings: [
                       " confidence",
                       "out hallucinations",
-                      " any GitHub project",
+                      " any GitLab project",
                       " MCP documentation",
                     ],
                     autoStart: true,
@@ -161,25 +161,25 @@ export default function Home() {
             <div className="mt-0 max-w-3xl mx-auto sm:mt-6">
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 sm:p-4 mb-3">
                 <Example
-                  from="github.com/username/repo"
-                  to="gitmcp.io/username/repo"
+                  from="gitlab.com/username/project"
+                  to="gitmcp.io/username/project"
                   bold="gitmcp.io"
                 />
                 <Divider simple />
                 <Example
-                  from="username.github.io/repo"
-                  to="username.gitmcp.io/repo"
+                  from="username.gitlab.io/project"
+                  to="username.gitmcp.io/project"
                   bold="gitmcp.io"
                 />
                 <Divider simple />
                 <Example
-                  from="any GitHub repository"
+                  from="any GitLab repository"
                   to="gitmcp.io/docs"
                   bold={["gitmcp.io", "any"]}
                 />
               </div>
 
-              <Divider text="or try the instant GitHub URL converter" />
+              <Divider text="or try the instant GitLab URL converter" />
               <div className="bg-gray-800 border border-gray-700 rounded-lg sm:p-2 sm:pt-2  mb-8">
                 <form onSubmit={handleSubmit} className="m-3">
                   <div className="flex rounded-md shadow-sm flex-col sm:flex-row gap-3 sm:gap-0">
@@ -189,7 +189,7 @@ export default function Home() {
                         name="github-url"
                         id="github-url"
                         className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 pl-3 pr-28 text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                        placeholder="Example: github.com/langchain-ai/langgraph"
+                        placeholder="Example: gitlab.com/langchain-ai/langgraph"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                       />
@@ -235,14 +235,14 @@ export default function Home() {
                 <span className="text-emerald-400 font-medium">
                   Remote MCP server
                 </span>{" "}
-                for any GitHub repository
+                for any GitLab repository
               </p>
               <p className="text-base pt-0 sm:text-xl text-gray-300 max-w-3xl mx-auto font-light px-2">
                 Simply change the domain from{" "}
-                <span className="text-gray-200 font-medium">github.com</span> or{" "}
-                <span className="text-gray-200 font-medium">github.io</span> to{" "}
+                <span className="text-gray-200 font-medium">gitlab.com</span> or{" "}
+                <span className="text-gray-200 font-medium">gitlab.io</span> to{" "}
                 <span className="text-emerald-400 font-medium">gitmcp.io</span>{" "}
-                and get instant AI context for any GitHub repository.
+                and get instant AI context for any GitLab repository.
               </p>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-400 text-center">
                 Replace{" "}
                 <code className="bg-gray-700 px-1.5 py-0.5 rounded">
-                  github.com
+                  gitlab.com
                 </code>{" "}
                 with{" "}
                 <code className="bg-gray-700 px-1.5 py-0.5 rounded text-emerald-400">
@@ -301,10 +301,10 @@ export default function Home() {
       <section id="github-pages-demo" className="py-8 bg-gray-900">
         <div className="text-center mb-4 sm:mb-4">
           <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 text-gradient">
-            With GitHub Pages
+            With GitLab Pages
           </h2>
           <p className="mt-4 text-base sm:text-xl text-gray-300 max-w-3xl mx-auto font-light px-2">
-            GitMCP works seamlessly with <b>GitHub Pages</b>. Here's an example:
+            GitMCP works seamlessly with <b>GitLab Pages</b>. Here's an example:
           </p>
         </div>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -318,13 +318,13 @@ export default function Home() {
       </section>
 
       {/* Video PW Demo Section */}
-      <section id="github-repo-demo" className="py-8 bg-gray-900">
+      <section id="github-project-demo" className="py-8 bg-gray-900">
         <div className="text-center mb-4 sm:mb-4">
           <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-500 text-gradient">
-            A GitHub Repo
+            A GitLab Repo
           </h2>
           <p className="mt-4 text-base sm:text-xl text-gray-300 max-w-3xl mx-auto font-light px-2">
-            GitMCP works with <b>any public GitHub repository</b>. Here's an
+            GitMCP works with <b>any public GitLab repository</b>. Here's an
             example:
           </p>
         </div>
@@ -347,7 +347,7 @@ export default function Home() {
             </h2>
             <p className="mt-4 text-base sm:text-xl text-gray-300 max-w-3xl mx-auto font-light px-2">
               GitMCP creates a dedicated Model Context Protocol (MCP) server for
-              any GitHub project, enabling AI assistants to understand your code
+              any GitLab project, enabling AI assistants to understand your code
               in context.
             </p>
           </div>
@@ -361,7 +361,7 @@ export default function Home() {
                 Code Understanding
               </h3>
               <p className="text-sm sm:text-base text-gray-400">
-                AI assistants gain a deep context of the code repo, reading{" "}
+                AI assistants gain a deep context of the code project, reading{" "}
                 <span className="text-blue-400">llms.txt</span>,{" "}
                 <span className="text-blue-400">llms-full.txt</span>,{" "}
                 <span className="text-blue-400">readme.md</span> and more,
@@ -377,7 +377,7 @@ export default function Home() {
                 Instant Setup
               </h3>
               <p className="text-sm sm:text-base text-gray-400">
-                No complex configuration needed. Just point to your GitHub
+                No complex configuration needed. Just point to your GitLab
                 repository and connect your AI tools.
               </p>
             </div>
@@ -390,7 +390,7 @@ export default function Home() {
                 Universal Access
               </h3>
               <p className="text-sm sm:text-base text-gray-400">
-                Works seamlessly with any public GitHub repository and GitHub
+                Works seamlessly with any public GitLab repository and GitLab
                 Pages, making your documentation and code accessible to AI
                 tools.
               </p>

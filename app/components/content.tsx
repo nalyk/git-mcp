@@ -5,22 +5,22 @@ import { generateServerName } from "../../src/shared/nameUtils";
 
 export default function Content({
   urlType,
-  owner,
-  repo,
+  namespace,
+  project,
   url,
 }: {
   urlType: UrlType;
-  owner?: string | null;
-  repo?: string | null;
+  namespace?: string | null;
+  project?: string | null;
   url?: string;
 }) {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   let documentationServerPrefix = "GitMCP";
-  let docsText = owner === "docs" ? "all GitHub docs" : `${owner}/${repo} docs`;
-  let serverName = generateServerName(repo);
+  let docsText = namespace === "docs" ? "all GitLab docs" : `${namespace}/${project} docs`;
+  let serverName = generateServerName(project);
 
-  if (owner == "cloudflare" && repo == "docs") {
+  if (namespace == "cloudflare" && project == "docs") {
     url = "https://docs.mcp.cloudflare.com/sse";
     documentationServerPrefix = "MCP";
     docsText = "Cloudflare docs";
@@ -28,7 +28,7 @@ export default function Content({
   }
 
   const description: React.ReactNode = (() => {
-    if (owner == "cloudflare" && repo == "docs") {
+    if (namespace == "cloudflare" && project == "docs") {
       return (
         <div>
           <span> for</span>{" "}
@@ -52,32 +52,32 @@ export default function Content({
           <span> for the</span>{" "}
           <strong className="text-blue-500">
             <a
-              href={`https://github.com/${owner}/${repo}`}
+              href={`https://gitlab.com/${namespace}/${project}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 hover:underline"
             >
-              {owner}/{repo}
+              {namespace}/{project}
             </a>
           </strong>{" "}
-          <span>GitHub Pages</span>
+          <span>GitLab Pages</span>
         </div>
       );
-    } else if (owner && repo) {
+    } else if (namespace && project) {
       return (
         <div>
           <span> for the</span>{" "}
           <strong className="text-blue-500">
             <a
-              href={`https://github.com/${owner}/${repo}`}
+              href={`https://gitlab.com/${namespace}/${project}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 hover:underline"
             >
-              {owner}/{repo}
+              {namespace}/{project}
             </a>
           </strong>{" "}
-          <span>GitHub repository</span>
+          <span>GitLab repository</span>
         </div>
       );
     }
@@ -118,16 +118,16 @@ export default function Content({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center p-8 px-4 sm:px-8 relative">
-      {/* GitHub Link */}
+      {/* GitLab Link */}
       <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
         <a
-          href="https://github.com/idosal/git-mcp"
+          href="https://gitlab.com/idosal/git-mcp"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-800 px-3 py-2 rounded-md transition-colors duration-200 border border-gray-200 shadow-sm z-10"
         >
           <Github className="h-5 w-5" />
-          <span className="hidden sm:inline">GitHub</span>
+          <span className="hidden sm:inline">GitLab</span>
         </a>
       </div>
       <div className="max-w-3xl w-full">
@@ -167,7 +167,7 @@ export default function Content({
           </div>
         </div>
 
-        {/* a button - NEW! Chat with `${owner}/${repo}` docs! */}
+        {/* a button - NEW! Chat with `${namespace}/${project}` docs! */}
         <div className="my-8 ">
           <div className="flex justify-center">
             <div className="relative group">
@@ -176,7 +176,7 @@ export default function Content({
                 className="cursor-pointer relative px-6 py-3 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 text-white font-bold text-lg rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center"
                 onClick={() =>
                   window.open(
-                    owner === "docs" ? "/docs/chat" : `/${owner}/${repo}/chat`,
+                    namespace === "docs" ? "/docs/chat" : `/${namespace}/${project}/chat`,
                     "_blank",
                   )
                 }

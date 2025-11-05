@@ -45,7 +45,7 @@
   "vectorize": [
     {
       "binding": "VECTORIZE",
-      "index_name": "gitmcp-github-docs-idx",
+      "index_name": "gitmcp-gitlab-docs-idx",
     },
   ],
   "kv_namespaces": [

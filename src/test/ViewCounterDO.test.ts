@@ -22,10 +22,10 @@ describe("ViewCounterDO", () => {
   describe("fetch", () => {
     it("should increment counter on POST request", async () => {
       // Setup mocks
-      mockStorage.get.mockResolvedValue(new Map([["test-repo", 5]]));
+      mockStorage.get.mockResolvedValue(new Map([["test-project", 5]]));
 
       // Create a test request
-      const request = new Request("https://counter/test-repo", {
+      const request = new Request("https://counter/test-project", {
         method: "POST",
       });
 
@@ -41,7 +41,7 @@ describe("ViewCounterDO", () => {
 
       // Verify the value was updated in the map
       const updatedMap = mockStorage.put.mock.calls[0][1];
-      expect(updatedMap.get("test-repo")).toBe(6);
+      expect(updatedMap.get("test-project")).toBe(6);
     });
 
     it("should initialize counter to 1 on first POST request", async () => {
@@ -49,7 +49,7 @@ describe("ViewCounterDO", () => {
       mockStorage.get.mockResolvedValue(null); // No existing counts
 
       // Create a test request
-      const request = new Request("https://counter/new-repo", {
+      const request = new Request("https://counter/new-project", {
         method: "POST",
       });
 
@@ -63,15 +63,15 @@ describe("ViewCounterDO", () => {
 
       // Verify a new map was created with the correct value
       const newMap = mockStorage.put.mock.calls[0][1];
-      expect(newMap.get("new-repo")).toBe(1);
+      expect(newMap.get("new-project")).toBe(1);
     });
 
     it("should get counter value on GET request", async () => {
       // Setup mocks
-      mockStorage.get.mockResolvedValue(new Map([["test-repo", 42]]));
+      mockStorage.get.mockResolvedValue(new Map([["test-project", 42]]));
 
       // Create a test request
-      const request = new Request("https://counter/test-repo", {
+      const request = new Request("https://counter/test-project", {
         method: "GET",
       });
 
@@ -85,12 +85,12 @@ describe("ViewCounterDO", () => {
       expect(data).toEqual({ count: 42 });
     });
 
-    it("should return 0 for non-existent repo on GET request", async () => {
+    it("should return 0 for non-existent project on GET request", async () => {
       // Setup mocks
       mockStorage.get.mockResolvedValue(new Map()); // Empty map
 
       // Create a test request
-      const request = new Request("https://counter/non-existent-repo", {
+      const request = new Request("https://counter/non-existent-project", {
         method: "GET",
       });
 
@@ -103,7 +103,7 @@ describe("ViewCounterDO", () => {
       expect(data).toEqual({ count: 0 });
     });
 
-    it("should return 400 for missing repo key", async () => {
+    it("should return 400 for missing project key", async () => {
       // Create a test request with no path
       const request = new Request("https://counter/", {
         method: "GET",
@@ -118,7 +118,7 @@ describe("ViewCounterDO", () => {
 
     it("should return 405 for unsupported methods", async () => {
       // Create a test request with DELETE method
-      const request = new Request("https://counter/test-repo", {
+      const request = new Request("https://counter/test-project", {
         method: "DELETE",
       });
 
