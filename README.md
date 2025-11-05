@@ -1,7 +1,7 @@
 # GitMCP
 
 <p align="center">
-  <img width="884" alt="image" src="https://github.com/user-attachments/assets/2bf3e3df-556c-49c6-ab7b-36c279d53bba" />
+  <img width="884" alt="image" src="https://gitlab.com/user-attachments/assets/2bf3e3df-556c-49c6-ab7b-36c279d53bba" />
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@
 ## 🤔 What is GitMCP?
 **Stop vibe-hallucinating and start vibe-coding!**
 
-[GitMCP](https://gitmcp.io) is a free, open-source, remote [Model Context Protocol (MCP)](https://docs.anthropic.com/en/docs/agents-and-tools/mcp) server that transforms **any** GitHub project (repositories or GitHub pages) into a documentation hub. It enables AI tools like Cursor to access up-to-date documentation and code, even if the LLM has never encountered them, thereby eliminating code hallucinations seamlessly.
+[GitMCP](https://gitmcp.io) is a free, open-source, remote [Model Context Protocol (MCP)](https://docs.anthropic.com/en/docs/agents-and-tools/mcp) server that transforms **any** GitLab project (repositories or GitLab pages) into a documentation hub. It enables AI tools like Cursor to access up-to-date documentation and code, even if the LLM has never encountered them, thereby eliminating code hallucinations seamlessly.
 
 GitMCP supports **two flavors** -
 
@@ -44,19 +44,22 @@ GitMCP supports **two flavors** -
 *   Work effectively even with niche, new, or rapidly changing libraries.
 *   Significantly reduced hallucinations and improved code correctness.
 
-For example, this side-by-side comparison shows the result for the same one-shot prompt in Cursor when creating a [three.js](https://github.com/mrdoob/three.js) scene -
+For example, this side-by-side comparison shows the result for the same one-shot prompt in Cursor when creating a [three.js](https://gitlab.com/mrdoob/three.js) scene -
 
-https://github.com/user-attachments/assets/fbf1b4a7-f9f0-4c0e-831c-4d64faae2c45
+https://gitlab.com/user-attachments/assets/fbf1b4a7-f9f0-4c0e-831c-4d64faae2c45
 
 ## ✨ Features
 
-- 😎 **Latest Documentation on ANY GitHub Project**: Grant your AI assistant seamless access to the GitHub project's documentation and code. The built-in smart search capabilities help find exactly what the AI needs without using too many tokens!
+- 😎 **Latest Documentation on ANY GitLab Project**: Grant your AI assistant seamless access to the GitLab project's documentation and code. The built-in smart search capabilities help find exactly what the AI needs without using too many tokens!
 - 🧠 **No More Hallucinations**: With GitMCP, your AI assistant can provide accurate and relevant answers to your questions.
 - ☁️ **Zero Setup**: GitMCP runs in the cloud. Simply add the chosen GitMCP URL as an MCP server in your IDE — no downloads, installations, signups, or changes are required.
 - 💬 **Embedded Chat**: Start quickly by chatting directly with the repository's documentation through our in-browser chat!
 - ✅ **Open, Free, and Private**: GitMCP is open-source and completely free to use. It doesn't collect personal information or store queries. You can even self-host it!
+- 🔒 **Private Repository Support**: Works with both public and private GitLab repositories. Simply configure your GitLab access token to access private projects.
+- 🏢 **Self-Hosted GitLab**: Full support for self-hosted GitLab instances. Configure your GitLab instance URL to use GitMCP with your organization's private GitLab server.
+- 📁 **Nested Group Support**: Seamlessly handles GitLab's nested group structure (e.g., `company/team/subteam/project`).
 
-<video src="https://github.com/user-attachments/assets/2c3afaf9-6c08-436e-9efd-db8710554430"></video>
+<video src="https://gitlab.com/user-attachments/assets/2c3afaf9-6c08-436e-9efd-db8710554430"></video>
 
 ## 🚀 Getting Started
 
@@ -66,13 +69,13 @@ Using GitMCP is easy! Simply follow these steps:
 
 Choose one of these URL formats depending on what you want to connect to:
 
-- For GitHub repositories: `gitmcp.io/{owner}/{repo}`
-- For GitHub Pages sites: `{owner}.gitmcp.io/{repo}`
+- For GitLab repositories: `gitmcp.io/{owner}/{repo}`
+- For GitLab Pages sites: `{owner}.gitmcp.io/{repo}`
 - For a generic tool that supports any repository (dynamic): `gitmcp.io/docs`
 
-Replace `{owner}` with the GitHub username or organization name, and `{repo}` with the repository name.
+Replace `{owner}` with the GitLab username or organization name, and `{repo}` with the repository name.
 
-For your convenience, you can also use the conversion tool on the landing page to format the GitHub URL into an MCP URL!
+For your convenience, you can also use the conversion tool on the landing page to format the GitLab URL into an MCP URL!
 
 ### Step 2: Connect your AI assistant
 
@@ -212,11 +215,48 @@ Or use the following configuration:
 
 For more details on configuring MCP servers in Augment Code, visit [the Augment Code documentation](https://docs.augmentcode.com/setup-augment/mcp).
 
-> **Note:** Remember to replace `{owner}` and `{repo}` with the actual GitHub username/organization and repository name. You can also use the dynamic endpoint `https://gitmcp.io/docs` to allow your AI to access any repository on demand.
+> **Note:** Remember to replace `{owner}` and `{repo}` with the actual GitLab username/organization and repository name. You can also use the dynamic endpoint `https://gitmcp.io/docs` to allow your AI to access any repository on demand.
+
+### Step 3: Configuration for Private Repositories and Self-Hosted GitLab (Optional)
+
+If you need to access private repositories or use a self-hosted GitLab instance, you'll need to configure environment variables:
+
+#### For Private Repositories
+
+1. Create a GitLab Personal Access Token:
+   - Go to your GitLab profile > Access Tokens
+   - Create a new token with `read_api` and `read_repository` scopes
+   - Copy the generated token
+
+2. Set the `GITLAB_TOKEN` environment variable in your deployment:
+   ```bash
+   GITLAB_TOKEN="your-gitlab-personal-access-token"
+   ```
+
+#### For Self-Hosted GitLab
+
+If you're using a self-hosted GitLab instance, also set the `GITLAB_API_BASE_URL` environment variable:
+
+```bash
+GITLAB_TOKEN="your-gitlab-personal-access-token"
+GITLAB_API_BASE_URL="https://gitlab.yourcompany.com/api/v4"
+```
+
+#### Nested Groups
+
+GitLab supports nested groups (e.g., `company/team/subteam/project`). GitMCP handles these automatically! Simply use the full path:
+
+```
+gitmcp.io/company/team/subteam/myproject
+```
+
+The system will correctly identify:
+- Namespace: `company/team/subteam`
+- Project: `myproject`
 
 ## ⚙ How It Works
 
-GitMCP connects your AI assistant to GitHub repositories using the Model Context Protocol (MCP), a standard that lets AI tools request additional information from external sources.
+GitMCP connects your AI assistant to GitLab repositories using the Model Context Protocol (MCP), a standard that lets AI tools request additional information from external sources.
 
 What happens when you use GitMCP:
 
@@ -239,16 +279,16 @@ Here are some examples of how to use GitMCP with different AI assistants and rep
 
 ### Example 1: Using Windsurf with a specific repository
 
-For the GitHub repository `https://github.com/microsoft/playwright-mcp`, add `https://gitmcp.io/microsoft/playwright-mcp` as an MCP server to Windsurf.
+For the GitLab repository `https://gitlab.com/microsoft/playwright-mcp`, add `https://gitmcp.io/microsoft/playwright-mcp` as an MCP server to Windsurf.
 
 **Prompt to Claude:**
 > "How do I use the Playwright MCP"
 
 Windsurf will pull the relevant documentation from GitMCP to implement the memory feature correctly.
 
-### Example 2: Using Cursor with a GitHub Pages site
+### Example 2: Using Cursor with a GitLab Pages site
 
-For the GitHub Pages site `langchain-ai.github.io/langgraph`, add `https://langchain-ai.gitmcp.io/langgraph` as an MCP server to Cursor.
+For the GitLab Pages site `langchain-ai.gitlab.io/langgraph`, add `https://langchain-ai.gitmcp.io/langgraph` as an MCP server to Cursor.
 
 **Prompt to Cursor:**
 > "Add memory to my LangGraph agent"
@@ -257,7 +297,7 @@ Cursor will pull the relevant documentation and code from GitMCP to correctly im
 
 ### Example 3: Using Claude Desktop with the dynamic endpoint
 
-You don't have to pick specific repositories. The generic `gitmcp.io/docs` endpoint allows AI to pick the GitHub project on the fly!
+You don't have to pick specific repositories. The generic `gitmcp.io/docs` endpoint allows AI to pick the GitLab project on the fly!
 
 **Prompt to any AI assistant:**
 > "I want to learn about the OpenAI Whisper speech recognition model. Explain how it works.
@@ -266,11 +306,11 @@ Claude will pull the data from GitMCP and answer the question.
 
 ## 🛠️ Tools
 
-GitMCP provides AI assistants with several valuable tools to help them access, understand, and query GitHub repositories.
+GitMCP provides AI assistants with several valuable tools to help them access, understand, and query GitLab repositories.
 
 ### `fetch_<repo-name>_documentation`
 
-This tool gets the primary documentation from a GitHub repository. It works by retrieving relevant documentation (e.g., `llms.txt`). This gives the AI a good overview of what the project is about
+This tool gets the primary documentation from a GitLab repository. It works by retrieving relevant documentation (e.g., `llms.txt`). This gives the AI a good overview of what the project is about
 
 **When it's useful:** For general questions about a project's purpose, features, or how to get started
 
@@ -288,7 +328,7 @@ This tool helps the AI get information from links mentioned in the documentation
 
 ### `search_<repo-name>_code`
 
-This tool searches through the actual code in the repository using GitHub's code search. It helps AI find specific code examples or implementation details.
+This tool searches through the actual code in the repository using GitLab's code search. It helps AI find specific code examples or implementation details.
 
 **When it's useful:** When you want examples of how something is implemented or need technical details not covered in documentation
 
@@ -308,7 +348,7 @@ Add the following to your `README.md`:
 [![GitMCP](https://img.shields.io/endpoint?url=https://gitmcp.io/badge/OWNER/REPO)](https://gitmcp.io/OWNER/REPO)
 ```
 
-Replace `OWNER` with your GitHub username or organization, and `REPO` with your repository name.
+Replace `OWNER` with your GitLab username or organization, and `REPO` with your repository name.
 
 ### How We Count Views
 
@@ -335,9 +375,9 @@ The [Model Context Protocol](https://modelcontextprotocol.io/introduction) is a 
 
 Yes, GitMCP is compatible with any AI assistant supporting the Model Context Protocol, including tools like Cursor, VSCode, Claude, etc.
 
-### Is GitMCP compatible with all GitHub projects?
+### Is GitMCP compatible with all GitLab projects?
 
-Absolutely! GitMCP works with any public GitHub repository without requiring any modifications. It prioritizes the `llms.txt` file and falls back to `README.md` or other pages if the former is unavailable. Future updates aim to support additional documentation methods and even generate content dynamically.
+Absolutely! GitMCP works with any public GitLab repository without requiring any modifications. It prioritizes the `llms.txt` file and falls back to `README.md` or other pages if the former is unavailable. Future updates aim to support additional documentation methods and even generate content dynamically.
 
 ### Does GitMCP cost money?
 
@@ -347,17 +387,17 @@ No, GitMCP is a free service to the community with no associated costs.
 
 GitMCP is deeply committed to its users' privacy. The service doesn't have access to or store any personally identifiable information as it doesn't require authentication. In addition, it doesn't store any queries sent by the agents. Moreover, as GitMCP is an open-source project, it can be deployed independently in your environment.
 
-GitMCP only accesses content that is already publicly available and only when queried by a user. GitMCP does not automatically scrape repositories. Before accessing any GitHub Pages site, the code checks for `robots.txt` rules and follows the directives set by site owners, allowing them to opt out. Please note that GitMCP doesn't permanently store data regarding the GitHub projects or their content.
+GitMCP only accesses content that is already publicly available and only when queried by a user. GitMCP does not automatically scrape repositories. Before accessing any GitLab Pages site, the code checks for `robots.txt` rules and follows the directives set by site owners, allowing them to opt out. Please note that GitMCP doesn't permanently store data regarding the GitLab projects or their content.
 
 ## 👥 Contributing
 
-We welcome contributions, feedback, and ideas! Please review our [contribution](https://github.com/idosal/git-mcp/blob/main/.github/CONTRIBUTING.md) guidelines.
+We welcome contributions, feedback, and ideas! Please review our [contribution](https://gitlab.com/idosal/git-mcp/blob/main/.github/CONTRIBUTING.md) guidelines.
 
 ### Local Development Setup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/idosal/git-mcp.git
+   git clone https://gitlab.com/idosal/git-mcp.git
    cd git-mcp
    ```
 
@@ -391,7 +431,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## Disclaimer
 
-GitMCP is provided "as is" without warranty of any kind. While we strive to ensure the reliability and security of our service, we are not responsible for any damages or issues that may arise from its use. GitHub projects accessed through GitMCP are subject to their respective owners' terms and conditions. GitMCP is not affiliated with GitHub or any of the mentioned AI tools.
+GitMCP is provided "as is" without warranty of any kind. While we strive to ensure the reliability and security of our service, we are not responsible for any damages or issues that may arise from its use. GitLab projects accessed through GitMCP are subject to their respective owners' terms and conditions. GitMCP is not affiliated with GitLab or any of the mentioned AI tools.
 
 
 ## Star History

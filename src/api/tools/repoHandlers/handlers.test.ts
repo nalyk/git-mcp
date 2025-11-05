@@ -42,7 +42,7 @@ describe("getHandlerByRepoData", () => {
     const requests: RequestData[] = [
       {
         requestHost: "docs.gitmcp.io",
-        requestUrl: "/some-repo",
+        requestUrl: "/some-project",
       },
       {
         requestHost: "gitmcp.io",
@@ -67,11 +67,11 @@ describe("getHandlerByRepoData", () => {
     const requests: RequestData[] = [
       {
         requestHost: "gitmcp.io",
-        requestUrl: "/some-owner/some-repo",
+        requestUrl: "/some-namespace/some-project",
       },
       {
-        requestHost: "owner.gitmcp.io",
-        requestUrl: "/some-repo",
+        requestHost: "namespace.gitmcp.io",
+        requestUrl: "/some-project",
       },
     ];
     requests.forEach((request) => {

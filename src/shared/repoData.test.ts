@@ -17,9 +17,9 @@ const testCases: {
       ],
     },
     expected: {
-      owner: "mrdoob",
-      repo: "three.js",
-      urlType: "github",
+      namespace: "mrdoob",
+      project: "three.js",
+      urlType: "gitlab",
       host: "git-mcp.idosalomon.workers.dev",
     },
   },
@@ -30,9 +30,9 @@ const testCases: {
       requestUrls: ["https://gitmcp.io/mrdoob/three.js", "/mrdoob/three.js"],
     },
     expected: {
-      owner: "mrdoob",
-      repo: "three.js",
-      urlType: "github",
+      namespace: "mrdoob",
+      project: "three.js",
+      urlType: "gitlab",
       host: "gitmcp.io",
     },
   },
@@ -43,8 +43,8 @@ const testCases: {
       requestUrls: ["https://ownerName.gitmcp.io/repoName", "/repoName"],
     },
     expected: {
-      owner: "ownerName",
-      repo: "repoName",
+      namespace: "ownerName",
+      project: "repoName",
       urlType: "subdomain",
       host: "ownerName.gitmcp.io",
     },
@@ -56,9 +56,9 @@ const testCases: {
       requestUrls: ["https://gitmcp.io/docs", "/docs"],
     },
     expected: {
-      owner: "docs",
-      repo: null,
-      urlType: "github",
+      namespace: "docs",
+      project: null,
+      urlType: "gitlab",
       host: "gitmcp.io",
     },
   },
@@ -69,8 +69,8 @@ const testCases: {
       requestUrls: ["https://docs.gitmcp.io/"],
     },
     expected: {
-      owner: "docs",
-      repo: null,
+      namespace: "docs",
+      project: null,
       urlType: "subdomain",
       host: "docs.gitmcp.io",
     },
@@ -85,9 +85,9 @@ const testCases: {
       ],
     },
     expected: {
-      owner: "myOwner",
-      repo: "myRepo",
-      urlType: "github",
+      namespace: "myOwner",
+      project: "myRepo",
+      urlType: "gitlab",
       host: HOST_TEMP_URL,
     },
   },
@@ -98,8 +98,8 @@ const testCases: {
       requestUrls: ["https://test.com/myOwner/myRepo", "/myOwner/myRepo"],
     },
     expected: {
-      owner: null,
-      repo: null,
+      namespace: null,
+      project: null,
       urlType: "unknown",
       host: "test.com",
     },
@@ -114,19 +114,51 @@ const testCases: {
       ],
     },
     expected: {
-      owner: "mrdoob",
-      repo: "three.js",
-      urlType: "github",
+      namespace: "mrdoob",
+      project: "three.js",
+      urlType: "gitlab",
       host: "localhost",
+    },
+  },
+  {
+    title: "nested groups (group/subgroup/project)",
+    input: {
+      requestHost: "gitmcp.io",
+      requestUrls: [
+        "https://gitmcp.io/mygroup/mysubgroup/myproject",
+        "/mygroup/mysubgroup/myproject",
+      ],
+    },
+    expected: {
+      namespace: "mygroup/mysubgroup",
+      project: "myproject",
+      urlType: "gitlab",
+      host: "gitmcp.io",
+    },
+  },
+  {
+    title: "deeply nested groups (group/sub1/sub2/project)",
+    input: {
+      requestHost: "gitmcp.io",
+      requestUrls: [
+        "https://gitmcp.io/company/team/subteam/myproject",
+        "/company/team/subteam/myproject",
+      ],
+    },
+    expected: {
+      namespace: "company/team/subteam",
+      project: "myproject",
+      urlType: "gitlab",
+      host: "gitmcp.io",
     },
   },
 ];
 
 describe("RepoData", () => {
   testCases.forEach((testCase) => {
-    describe(`should return the correct repo data for ${testCase.title}`, () => {
+    describe(`should return the correct project data for ${testCase.title}`, () => {
       testCase.input.requestUrls.forEach((requestUrl) => {
-        it(`should return the correct repo data for ${testCase.input.requestHost} + ${requestUrl}`, () => {
+        it(`should return the correct project data for ${testCase.input.requestHost} + ${requestUrl}`, () => {
           const result = getRepoData({
             requestHost: testCase.input.requestHost,
             requestUrl,
@@ -140,18 +172,18 @@ describe("RepoData", () => {
 
 const flatTestCases = {
   "microsoft/playwright-mcp": [
-    "https://github.com/microsoft/playwright-mcp",
-    "https://github.com/microsoft/playwright-mcp/blob/main/src/mcp-server.ts",
-    "https://microsoft.github.io/playwright-mcp",
-    "https://microsoft.github.io/playwright-mcp/blob/main/src/mcp-server.ts",
+    "https://gitlab.com/microsoft/playwright-mcp",
+    "https://gitlab.com/microsoft/playwright-mcp/blob/main/src/mcp-server.ts",
+    "https://microsoft.gitlab.io/playwright-mcp",
+    "https://microsoft.gitlab.io/playwright-mcp/blob/main/src/mcp-server.ts",
     "https://gitmcp.io/microsoft/playwright-mcp",
     "https://gitmcp.io/microsoft/playwright-mcp/blob/main/src/mcp-server.ts",
     "https://microsoft.gitmcp.io/playwright-mcp",
     "https://microsoft.gitmcp.io/playwright-mcp/blob/main/src/mcp-server.ts",
-    "github.com/microsoft/playwright-mcp",
-    "github.com/microsoft/playwright-mcp/blob/main/src/mcp-server.ts",
-    "microsoft.github.io/playwright-mcp",
-    "microsoft.github.io/playwright-mcp/blob/main/src/mcp-server.ts",
+    "gitlab.com/microsoft/playwright-mcp",
+    "gitlab.com/microsoft/playwright-mcp/blob/main/src/mcp-server.ts",
+    "microsoft.gitlab.io/playwright-mcp",
+    "microsoft.gitlab.io/playwright-mcp/blob/main/src/mcp-server.ts",
     "gitmcp.io/microsoft/playwright-mcp",
     "gitmcp.io/microsoft/playwright-mcp/blob/main/src/mcp-server.ts",
     "microsoft.gitmcp.io/playwright-mcp",
@@ -167,17 +199,31 @@ const flatTestCases = {
   ],
   "docs/null": [
     "docs.gitmcp.io",
-    "docs.github.io",
+    "docs.gitlab.io",
     "gitmcp.io/docs",
     "localhost:3000/docs",
+  ],
+  "mygroup/mysubgroup/myproject": [
+    "https://gitlab.com/mygroup/mysubgroup/myproject",
+    "gitlab.com/mygroup/mysubgroup/myproject",
+    "https://gitmcp.io/mygroup/mysubgroup/myproject",
+    "gitmcp.io/mygroup/mysubgroup/myproject",
+    "mygroup/mysubgroup/myproject",
+  ],
+  "company/team/subteam/myproject": [
+    "https://gitlab.com/company/team/subteam/myproject",
+    "gitlab.com/company/team/subteam/myproject",
+    "https://gitmcp.io/company/team/subteam/myproject",
+    "gitmcp.io/company/team/subteam/myproject",
+    "company/team/subteam/myproject",
   ],
 };
 describe("getRepoDataFromUrl", () => {
   Object.entries(flatTestCases).forEach(([testCase, urls]) => {
-    it(`should return the correct repo data for ${testCase}`, () => {
+    it(`should return the correct project data for ${testCase}`, () => {
       urls.forEach((url) => {
         const result = getRepoDataFromUrl(url);
-        expect(`${result.owner}/${result.repo ?? null}`).toEqual(testCase);
+        expect(`${result.namespace}/${result.project ?? null}`).toEqual(testCase);
       });
     });
   });

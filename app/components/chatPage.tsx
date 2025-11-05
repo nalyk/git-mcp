@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import ChatPageClient from "./.client/chatPage.client";
 export default function ChatPageServer({
-  owner,
-  repo,
+  namespace,
+  project,
 }: {
-  owner: string | null;
-  repo: string | null;
+  namespace: string | null;
+  project: string | null;
 }) {
   const [client, setClient] = useState(false);
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function ChatPageServer({
     }
   }, []);
   if (client) {
-    return <ChatPageClient owner={owner} repo={repo} />;
+    return <ChatPageClient namespace={namespace} project={project} />;
   } else {
     return <div></div>;
   }

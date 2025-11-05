@@ -12,11 +12,11 @@ import "./chatPage.css";
 import { ApiKeysProvider } from "~/chat/components/api-keys-provider";
 
 export default function ChatPage({
-  owner,
-  repo,
+  namespace,
+  project,
 }: {
-  owner: string | null;
-  repo: string | null;
+  namespace: string | null;
+  project: string | null;
 }) {
   const [sidebarOpen, setSidebarOpen] = useLocalStorage<boolean>(
     STORAGE_KEYS.SIDEBAR_STATE,
@@ -36,7 +36,7 @@ export default function ChatPage({
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
         >
-          <MCPProvider owner={owner || "docs"} repo={repo || null}>
+          <MCPProvider namespace={namespace || "docs"} project={project || null}>
             <div className="flex h-dvh w-full">
               <ChatSidebar />
               <main className="flex-1 flex flex-col relative">

@@ -6,12 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getRepoData(url: string): {
-  owner: string | null;
-  repo: string | null;
+  namespace: string | null;
+  project: string | null;
 } {
-  // Handle simple owner/repo format
+  // Handle simple namespace/project format
   if (!url.includes("/") && !url.includes(".")) {
-    return { owner: null, repo: null };
+    return { namespace: null, project: null };
   }
 
   // Remove protocol if present
@@ -19,31 +19,31 @@ export function getRepoData(url: string): {
 
   // Different URL patterns
   const patterns = [
-    // github.com/owner/repo
-    /^(?:www\.)?github\.com\/([^\/]+)\/([^\/]+)/,
-    // owner.github.io/repo
-    /^(?:www\.)?([^\/]+)\.github\.io\/([^\/]+)/,
-    // gitmcp.io/owner/repo
+    // gitlab.com/namespace/project
+    /^(?:www\.)?gitlab\.com\/([^\/]+)\/([^\/]+)/,
+    // namespace.gitlab.io/project
+    /^(?:www\.)?([^\/]+)\.gitlab\.io\/([^\/]+)/,
+    // gitmcp.io/namespace/project
     /^(?:www\.)?gitmcp\.io\/([^\/]+)\/([^\/]+)/,
-    // owner.gitmcp.io/repo
+    // namespace.gitmcp.io/project
     /^(?:www\.)?([^\/]+)\.gitmcp\.io\/([^\/]+)/,
-    // owner.gitmcp.io
+    // namespace.gitmcp.io
     /^(?:www\.)?([^\/]+)\.gitmcp\.io/,
-    // owner.github.io
-    /^(?:www\.)?([^\/]+)\.github\.io/,
+    // namespace.gitlab.io
+    /^(?:www\.)?([^\/]+)\.gitlab\.io/,
     // gitmcp.io/docs
     /^(?:www\.)?gitmcp\.io\/(docs)/,
-    // Simple owner/repo format
+    // Simple namespace/project format
     /^([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)/,
   ];
 
   for (const pattern of patterns) {
     const match = urlWithoutProtocol.match(pattern);
     if (match) {
-      return { owner: match[1], repo: match[2] };
+      return { namespace: match[1], project: match[2] };
     }
   }
 
   // Default fallback
-  return { owner: null, repo: null };
+  return { namespace: null, project: null };
 }

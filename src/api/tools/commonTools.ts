@@ -1,13 +1,13 @@
 import type { RepoData } from "../../shared/repoData.js";
 import {
-  constructGithubUrl,
-  fetchFileFromGitHub,
+  constructGitlabUrl,
+  fetchFileFromGitLab,
   getRepoBranch,
-  searchGitHubRepo,
-} from "../utils/github.js";
+  searchGitLabRepo,
+} from "../utils/gitlab.js";
 import { fetchFileWithRobotsTxtCheck } from "../utils/robotsTxt.js";
 import htmlToMd from "html-to-md";
-import { searchCode } from "../utils/githubClient.js";
+import { searchCode } from "../utils/gitlabClient.js";
 import { fetchFileFromR2 } from "../utils/r2.js";
 import { generateServerName } from "../../shared/nameUtils.js";
 import {
@@ -31,15 +31,15 @@ export async function fetchDocumentation({
   env: CloudflareEnvironment;
   ctx: any;
 }): Promise<FetchDocumentationResult> {
-  const { owner, repo, urlType } = repoData;
+  const { namespace, project, urlType } = repoData;
   const cacheTTL = 30 * 60; // 30 minutes in seconds
 
   // Try fetching from cache first
-  if (owner && repo) {
-    const cachedResult = await getCachedFetchDocResult(owner, repo, env);
+  if (namespace && project) {
+    const cachedResult = await getCachedFetchDocResult(namespace, project, env);
     if (cachedResult) {
       console.log(
-        `Returning cached fetchDocumentation result for ${owner}/${repo}`,
+        `Returning cached fetchDocumentation result for ${namespace}/${project}`,
       );
       return cachedResult;
     }
@@ -54,10 +54,10 @@ export async function fetchDocumentation({
 
   // Check for subdomain pattern: {subdomain}.gitmcp.io/{path}
   if (urlType === "subdomain") {
-    // Map to github.io
-    const githubIoDomain = `${owner}.github.io`;
-    const pathWithSlash = repo ? `/${repo}` : "";
-    const baseURL = `https://${githubIoDomain}${pathWithSlash}/`;
+    // Map to gitlab.io
+    const gitlabIoDomain = `${namespace}.gitlab.io`;
+    const pathWithSlash = project ? `/${project}` : "";
+    const baseURL = `https://${gitlabIoDomain}${pathWithSlash}/`;
 
     // Try to fetch llms.txt with robots.txt check
     const llmsResult = await fetchFileWithRobotsTxtCheck(
@@ -113,14 +113,14 @@ export async function fetchDocumentation({
     // If any path was blocked by robots.txt, return appropriate message
     if (blockedByRobots) {
       content =
-        "Access to this GitHub Pages site is restricted by robots.txt. GitMCP respects robots.txt directives.";
+        "Access to this GitLab Pages site is restricted by robots.txt. GitMCP respects robots.txt directives.";
       fileUsed = "robots.txt restriction";
     }
-  } else if (urlType === "github" && owner && repo) {
+  } else if (urlType === "gitlab" && namespace && project) {
     // Try static paths + search for llms.txt directly
-    docsBranch = await getRepoBranch(owner, repo, env); // Get branch once
+    docsBranch = await getRepoBranch(namespace, project, env); // Get branch once
 
-    console.log(`Checking static paths for llms.txt in ${owner}/${repo}`);
+    console.log(`Checking static paths for llms.txt in ${namespace}/${project}`);
     const possibleLocations = [
       "docs/docs/llms.txt", // Current default
       "llms.txt", // Root directory
@@ -130,9 +130,9 @@ export async function fetchDocumentation({
     // Create array of all location+branch combinations to try
     const fetchPromises = possibleLocations.flatMap((location) => [
       {
-        promise: fetchFileFromGitHub(
-          owner,
-          repo,
+        promise: fetchFileFromGitLab(
+          namespace,
+          project,
           docsBranch,
           location,
           env,
@@ -159,25 +159,26 @@ export async function fetchDocumentation({
         content = mainResult.content;
         fileUsed = `llms.txt`;
 
-        docsPath = constructGithubUrl(
-          owner,
-          repo,
+        docsPath = constructGitlabUrl(
+          namespace,
+          project,
           mainResult.branch,
           mainResult.location,
+          env,
         );
         break;
       }
     }
 
-    // Fallback to GitHub Search API if static paths don't work for llms.txt
+    // Fallback to GitLab Search API if static paths don't work for llms.txt
     if (!content) {
       console.log(
-        `llms.txt not found in static paths, trying GitHub Search API`,
+        `llms.txt not found in static paths, trying GitLab Search API`,
       );
 
-      const result = await searchGitHubRepo(
-        owner,
-        repo,
+      const result = await searchGitLabRepo(
+        namespace,
+        project,
         "llms.txt",
         docsBranch,
         env,
@@ -190,35 +191,35 @@ export async function fetchDocumentation({
       }
     }
 
-    // Try R2 fallback if llms.txt wasn't found via GitHub
+    // Try R2 fallback if llms.txt wasn't found via GitLab
     if (!content) {
       // Try to fetch pre-generated llms.txt
-      content = (await fetchFileFromR2(owner, repo, "llms.txt", env)) ?? null;
+      content = (await fetchFileFromR2(namespace, project, "llms.txt", env)) ?? null;
       if (content) {
-        console.log(`Fetched pre-generated llms.txt for ${owner}/${repo}`);
+        console.log(`Fetched pre-generated llms.txt for ${namespace}/${project}`);
         fileUsed = "llms.txt (generated)";
       } else {
-        console.error(`No pre-generated llms.txt found for ${owner}/${repo}`);
+        console.error(`No pre-generated llms.txt found for ${namespace}/${project}`);
       }
     }
 
-    // Fallback to README if llms.txt not found in any location (GitHub or R2)
+    // Fallback to README if llms.txt not found in any location (GitLab or R2)
     if (!content) {
       console.log(
         `llms.txt not found, trying README.* at root`,
-        owner,
-        repo,
+        namespace,
+        project,
         docsBranch,
       );
       // Ensure docsBranch is available (should be fetched above)
       if (!docsBranch) {
-        docsBranch = await getRepoBranch(owner, repo, env);
+        docsBranch = await getRepoBranch(namespace, project, env);
       }
 
       // Search for README.* files in the root directory
-      const readmeResult = await searchGitHubRepo(
-        owner,
-        repo,
+      const readmeResult = await searchGitLabRepo(
+        namespace,
+        project,
         "README+path:/", // Search for files like README.* in root
         docsBranch, // Use the determined branch
         env,
@@ -231,28 +232,29 @@ export async function fetchDocumentation({
         const filename =
           readmeResult.path.split("/").pop() || readmeResult.path;
         fileUsed = filename; // e.g., "README.md", "README.asciidoc"
-        docsPath = constructGithubUrl(
-          owner,
-          repo,
+        docsPath = constructGitlabUrl(
+          namespace,
+          project,
           docsBranch,
           readmeResult.path,
+          env,
         ); // Use the full path found
         console.log(`Found README file via search: ${fileUsed}`);
       } else {
-        console.log(`No README file found at root for ${owner}/${repo}`);
+        console.log(`No README file found at root for ${namespace}/${project}`);
       }
     }
 
     if (!content) {
-      console.error(`Failed to find documentation for ${owner}/${repo}`);
+      console.error(`Failed to find documentation for ${namespace}/${project}`);
     }
   }
 
-  if (owner && repo) {
+  if (namespace && project) {
     ctx.waitUntil(
       enqueueDocumentationProcessing(
-        owner,
-        repo,
+        namespace,
+        project,
         content,
         fileUsed,
         docsPath,
@@ -285,9 +287,9 @@ export async function fetchDocumentation({
     ],
   };
 
-  if (owner && repo) {
+  if (namespace && project) {
     ctx.waitUntil(
-      cacheFetchDocResult(owner, repo, result, cacheTTL, env).catch((error) => {
+      cacheFetchDocResult(namespace, project, result, cacheTTL, env).catch((error) => {
         console.warn(`Failed to cache fetch documentation result: ${error}`);
       }),
     );
@@ -297,8 +299,8 @@ export async function fetchDocumentation({
 }
 
 async function enqueueDocumentationProcessing(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   content: string | null,
   fileUsed: string,
   docsPath: string,
@@ -307,13 +309,13 @@ async function enqueueDocumentationProcessing(
 ) {
   try {
     if (env.MY_QUEUE) {
-      console.log("Enqueuing documentation processing", owner, repo);
-      const repoUrl = `https://github.com/${owner}/${repo}`;
+      console.log("Enqueuing documentation processing", namespace, project);
+      const repoUrl = `https://gitlab.com/${namespace}/${project}`;
 
       // Prepare and send message to queue
       const message = {
-        owner,
-        repo,
+        namespace,
+        project,
         repo_url: repoUrl,
         file_url: docsPath,
         content_length: content?.length,
@@ -323,7 +325,7 @@ async function enqueueDocumentationProcessing(
 
       await env.MY_QUEUE.send(JSON.stringify(message));
       console.log(
-        `Queued documentation processing for ${owner}/${repo}`,
+        `Queued documentation processing for ${namespace}/${project}`,
         message,
       );
     } else {
@@ -331,7 +333,7 @@ async function enqueueDocumentationProcessing(
     }
   } catch (error) {
     console.error(
-      `Failed to enqueue documentation request for ${owner}/${repo}`,
+      `Failed to enqueue documentation request for ${namespace}/${project}`,
       error,
     );
   }
@@ -357,7 +359,7 @@ export async function searchRepositoryDocumentation({
     throw new Error("DOCS_BUCKET is not available in environment");
   }
   const docsInR2 = !!(await env.DOCS_BUCKET.head(
-    `${repoData.owner}/${repoData.repo}/llms.txt`,
+    `${repoData.namespace}/${repoData.project}/llms.txt`,
   ));
   if (docsInR2) {
     try {
@@ -406,14 +408,14 @@ export async function searchRepositoryDocumentationAutoRag({
   searchQuery: string;
   content: { type: "text"; text: string }[];
 }> {
-  if (!repoData.owner || !repoData.repo) {
+  if (!repoData.namespace || !repoData.project) {
     return {
       searchQuery: query,
       content: [{ type: "text", text: "No repository data provided" }],
     };
   }
 
-  const repoPrefix = `${repoData.owner}/${repoData.repo}/`;
+  const repoPrefix = `${repoData.namespace}/${repoData.project}/`;
   const searchRequest = {
     query: query,
     rewrite_query: true,
@@ -447,28 +449,29 @@ export async function searchRepositoryDocumentationAutoRag({
   // Add source data if available
   if (answer.data && answer.data.length > 0) {
     const filteredData = answer.data.filter((item) => {
-      return item.filename.startsWith(`${repoData.owner}/${repoData.repo}/`);
+      return item.filename.startsWith(`${repoData.namespace}/${repoData.project}/`);
     });
 
     if (filteredData.length > 0) {
       responseText +=
         "### Sources:\nImportant: you can fetch the full content of any source using the fetch_url_content tool\n";
       const defaultBranch = await getRepoBranch(
-        repoData.owner,
-        repoData.repo,
+        repoData.namespace,
+        repoData.project,
         env,
       );
 
       for (const item of filteredData) {
-        let rawUrl = constructGithubUrl(
-          repoData.owner,
-          repoData.repo,
+        let rawUrl = constructGitlabUrl(
+          repoData.namespace,
+          repoData.project,
           defaultBranch,
-          item.filename.replace(`${repoData.owner}/${repoData.repo}/`, ""),
+          item.filename.replace(`${repoData.namespace}/${repoData.project}/`, ""),
+          env,
         );
 
         if (item.filename.endsWith(".ipynb.txt")) {
-          rawUrl = `https://pub-39b02ce1b5a441b2a4658c1fc71dbb9c.r2.dev/${repoData.owner}/${repoData.repo}/${item.filename}`;
+          rawUrl = `https://pub-39b02ce1b5a441b2a4658c1fc71dbb9c.r2.dev/${repoData.namespace}/${repoData.project}/${item.filename}`;
         }
 
         responseText += `\n#### (${item.filename})[${rawUrl}] (Score: ${item.score.toFixed(2)})\n`;
@@ -519,12 +522,12 @@ export async function searchRepositoryDocumentationNaive({
   searchQuery: string;
   content: { type: "text"; text: string }[];
 }> {
-  // Initialize owner and repo
-  let owner: string | null =
-    repoData.owner ?? repoData.host.replace(/\./g, "_");
-  let repo: string | null = repoData.repo ?? "docs";
+  // Initialize namespace and project
+  let namespace: string | null =
+    repoData.namespace ?? repoData.host.replace(/\./g, "_");
+  let project: string | null = repoData.project ?? "docs";
 
-  console.log(`Searching ${owner}/${repo}`);
+  console.log(`Searching ${namespace}/${project}`);
 
   try {
     // Fetch the documentation - pass env
@@ -540,7 +543,7 @@ export async function searchRepositoryDocumentationNaive({
     const formattedText =
       `### Search Results for: "${query}"\n\n` +
       `No relevant documentation found for your query. It's either being indexed or the search query did not match any documentation.\n\n` +
-      `As a fallback, this is the documentation for ${owner}/${repo}:\n\n` +
+      `As a fallback, this is the documentation for ${namespace}/${project}:\n\n` +
       `${content}\n\n` +
       `If you'd like to retry the search, try changing the query to increase the likelihood of a match.`;
 
@@ -571,8 +574,8 @@ export async function searchRepositoryDocumentationNaive({
 }
 
 /**
- * Search for code in a GitHub repository
- * Uses the GitHub Search API to find code matching a query
+ * Search for code in a GitLab repository
+ * Uses the GitLab Search API to find code matching a query
  * Supports pagination for retrieving more results
  */
 export async function searchRepositoryCode({
@@ -598,11 +601,11 @@ export async function searchRepositoryCode({
   };
 }> {
   try {
-    // Initialize owner and repo from the provided repoData
-    const owner = repoData.owner;
-    const repo = repoData.repo;
+    // Initialize namespace and project from the provided repoData
+    const namespace = repoData.namespace;
+    const project = repoData.project;
 
-    if (!owner || !repo) {
+    if (!namespace || !project) {
       return {
         searchQuery: query,
         content: [
@@ -619,13 +622,13 @@ export async function searchRepositoryCode({
     const resultsPerPage = 30; // Fixed at 30 results per page
 
     console.log(
-      `Searching code in ${owner}/${repo}" (page ${currentPage}, ${resultsPerPage} per page)`,
+      `Searching code in ${namespace}/${project}" (page ${currentPage}, ${resultsPerPage} per page)`,
     );
 
     const data = await searchCode(
       query,
-      owner,
-      repo,
+      namespace,
+      project,
       env,
       currentPage,
       resultsPerPage,
@@ -637,7 +640,7 @@ export async function searchRepositoryCode({
         content: [
           {
             type: "text" as const,
-            text: `### Code Search Results for: "${query}"\n\nFailed to search code in ${owner}/${repo}. GitHub API request failed.`,
+            text: `### Code Search Results for: "${query}"\n\nFailed to search code in ${namespace}/${project}. GitLab API request failed.`,
           },
         ],
       };
@@ -650,7 +653,7 @@ export async function searchRepositoryCode({
         content: [
           {
             type: "text" as const,
-            text: `### Code Search Results for: "${query}"\n\nNo code matches found in ${owner}/${repo}.`,
+            text: `### Code Search Results for: "${query}"\n\nNo code matches found in ${namespace}/${project}.`,
           },
         ],
       };
@@ -663,7 +666,7 @@ export async function searchRepositoryCode({
 
     // Format the search results
     let formattedResults = `### Code Search Results for: "${query}"\n\n`;
-    formattedResults += `Found ${totalCount} matches in ${owner}/${repo}.\n`;
+    formattedResults += `Found ${totalCount} matches in ${namespace}/${project}.\n`;
     formattedResults += `Page ${currentPage} of ${totalPages}.\n\n`;
 
     for (const item of data.items) {
@@ -785,16 +788,16 @@ export const LIMIT = 51;
 /**
  * Enforces the 50-character limit on the combined server and tool names
  * @param prefix - The prefix for the tool name (fetch_ or search_)
- * @param repo - The repository name
+ * @param project - The repository name
  * @param suffix - The suffix for the tool name (_documentation)
  * @returns A tool name that ensures combined length with server name stays under 50 characters
  */
 export function enforceToolNameLengthLimit(
   prefix: string,
-  repo: string | null | undefined,
+  project: string | null | undefined,
   suffix: string,
 ): string {
-  if (!repo) {
+  if (!project) {
     console.error(
       "Repository name is null/undefined in enforceToolNameLengthLimit",
     );
@@ -802,10 +805,10 @@ export function enforceToolNameLengthLimit(
   }
 
   // Generate the server name to check combined length
-  const serverNameLen = generateServerName(repo).length;
+  const serverNameLen = generateServerName(project).length;
 
   // Replace non-alphanumeric characters with underscores
-  let repoName = repo.replace(/[^a-zA-Z0-9]/g, "_");
+  let repoName = project.replace(/[^a-zA-Z0-9]/g, "_");
   let toolName = `${prefix}${repoName}${suffix}`;
 
   // Calculate combined length
@@ -823,7 +826,7 @@ export function enforceToolNameLengthLimit(
     return toolName;
   }
 
-  // Step 2: Shorten the repo name by removing words
+  // Step 2: Shorten the project name by removing words
   const words = repoName.split("_");
   if (words.length > 1) {
     // Keep removing words from the end until we're under the limit or have only one word left
@@ -837,12 +840,12 @@ export function enforceToolNameLengthLimit(
     }
   }
 
-  const result = `${prefix}repo${shorterSuffix}`;
+  const result = `${prefix}project${shorterSuffix}`;
   if (result.length + serverNameLen <= LIMIT) {
     return result;
   }
 
-  // Step 3: As a last resort, change repo name to "repo"
+  // Step 3: As a last resort, change project name to "project"
   return `${prefix}${shorterSuffix}`.replace(/__/g, "_");
 }
 
@@ -852,13 +855,13 @@ export function enforceToolNameLengthLimit(
  * @param requestUrl - The full request URL (optional)
  * @returns A descriptive string for the tool name
  */
-export function generateSearchToolName({ urlType, repo }: RepoData): string {
+export function generateSearchToolName({ urlType, project }: RepoData): string {
   try {
     // Default tool name as fallback
     let toolName = "search_documentation";
-    if (urlType == "subdomain" || urlType == "github") {
+    if (urlType == "subdomain" || urlType == "gitlab") {
       // Use enforceLengthLimit to ensure the tool name doesn't exceed 55 characters
-      return enforceToolNameLengthLimit("search_", repo, "_documentation");
+      return enforceToolNameLengthLimit("search_", project, "_documentation");
     }
     // replace non-alphanumeric characters with underscores
     return toolName.replace(/[^a-zA-Z0-9]/g, "_");
@@ -877,8 +880,8 @@ export function generateSearchToolName({ urlType, repo }: RepoData): string {
  */
 export function generateSearchToolDescription({
   urlType,
-  owner,
-  repo,
+  namespace,
+  project,
 }: RepoData): string {
   try {
     // Default description as fallback
@@ -886,9 +889,9 @@ export function generateSearchToolDescription({
       "Semantically search within the fetched documentation for the current repository.";
 
     if (urlType == "subdomain") {
-      description = `Semantically search within the fetched documentation from the ${owner}/${repo} GitHub Pages. Useful for specific queries.`;
-    } else if (urlType == "github") {
-      description = `Semantically search within the fetched documentation from GitHub repository: ${owner}/${repo}. Useful for specific queries.`;
+      description = `Semantically search within the fetched documentation from the ${namespace}/${project} GitLab Pages. Useful for specific queries.`;
+    } else if (urlType == "gitlab") {
+      description = `Semantically search within the fetched documentation from GitLab repository: ${namespace}/${project}. Useful for specific queries.`;
     }
 
     return description;
@@ -906,17 +909,17 @@ export function generateSearchToolDescription({
  */
 export function generateFetchToolDescription({
   urlType,
-  owner,
-  repo,
+  namespace,
+  project,
 }: Omit<RepoData, "host">): string {
   try {
     // Default description as fallback
     let description = "Fetch entire documentation for the current repository.";
 
     if (urlType == "subdomain") {
-      description = `Fetch entire documentation file from the ${owner}/${repo} GitHub Pages. Useful for general questions. Always call this tool first if asked about ${owner}/${repo}.`;
-    } else if (urlType == "github") {
-      description = `Fetch entire documentation file from GitHub repository: ${owner}/${repo}. Useful for general questions. Always call this tool first if asked about ${owner}/${repo}.`;
+      description = `Fetch entire documentation file from the ${namespace}/${project} GitLab Pages. Useful for general questions. Always call this tool first if asked about ${namespace}/${project}.`;
+    } else if (urlType == "gitlab") {
+      description = `Fetch entire documentation file from GitLab repository: ${namespace}/${project}. Useful for general questions. Always call this tool first if asked about ${namespace}/${project}.`;
     }
 
     return description;
@@ -934,16 +937,16 @@ export function generateFetchToolDescription({
  */
 export function generateFetchToolName({
   urlType,
-  owner,
-  repo,
+  namespace,
+  project,
 }: Omit<RepoData, "host">): string {
   try {
     // Default tool name as fallback
     let toolName = "fetch_documentation";
 
-    if (urlType == "subdomain" || urlType == "github") {
+    if (urlType == "subdomain" || urlType == "gitlab") {
       // Use enforceLengthLimit to ensure the tool name doesn't exceed 55 characters
-      return enforceToolNameLengthLimit("fetch_", repo, "_documentation");
+      return enforceToolNameLengthLimit("fetch_", project, "_documentation");
     }
 
     // replace non-alphanumeric characters with underscores
@@ -962,14 +965,14 @@ export function generateFetchToolName({
  */
 export function generateCodeSearchToolName({
   urlType,
-  repo,
+  project,
 }: RepoData): string {
   try {
     // Default tool name as fallback
     let toolName = "search_code";
-    if (urlType == "subdomain" || urlType == "github") {
+    if (urlType == "subdomain" || urlType == "gitlab") {
       // Use enforceLengthLimit to ensure the tool name doesn't exceed 55 characters
-      return enforceToolNameLengthLimit("search_", repo, "_code");
+      return enforceToolNameLengthLimit("search_", project, "_code");
     }
     // replace non-alphanumeric characters with underscores
     return toolName.replace(/[^a-zA-Z0-9]/g, "_");
@@ -986,10 +989,10 @@ export function generateCodeSearchToolName({
  * @returns A descriptive string for the tool
  */
 export function generateCodeSearchToolDescription({
-  owner,
-  repo,
+  namespace,
+  project,
 }: RepoData): string {
-  return `Search for code within the GitHub repository: "${owner}/${repo}" using the GitHub Search API (exact match). Returns matching files for you to query further if relevant.`;
+  return `Search for code within the GitLab repository: "${namespace}/${project}" using the GitLab Search API (exact match). Returns matching files for you to query further if relevant.`;
 }
 
 /**

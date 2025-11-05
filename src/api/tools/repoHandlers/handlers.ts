@@ -8,21 +8,21 @@ import { getReactRouterRepoHandler } from "./ReactRouterRepoHandler.js";
 const handlers: RepoHandlerMap = {
   // handle all types of urls for three.js
   "all::mrdoob/three.js": getThreejsRepoHandler(),
-  // handle only the github type of urls for "generic" repos
+  // handle only the gitlab type of urls for "generic" repos
   "all::docs/": getGenericRepoHandler(),
   "all::remix-run/react-router": getReactRouterRepoHandler(),
 };
 
 export function getHandlerByRepoData(repoData: RepoData): RepoHandler {
-  if (!repoData.repo && repoData.owner !== "docs") {
-    console.log("Invalid repo data:", repoData);
+  if (!repoData.project && repoData.namespace !== "docs") {
+    console.log("Invalid project data:", repoData);
 
     throw new Error(
       `Invalid repository data: ${JSON.stringify(repoData, null, 2)}`,
     );
   }
 
-  const repoKey = `${repoData.owner ?? ""}/${repoData.repo ?? ""}` as RepoKey;
+  const repoKey = `${repoData.namespace ?? ""}/${repoData.project ?? ""}` as RepoKey;
 
   return (
     // check if the keyWithUrlType is in the handlers

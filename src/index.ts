@@ -53,13 +53,13 @@ const handleCorsPreflightRequest = (): Response => {
 async function handleBadgeRequest(
   request: Request,
   env: CloudflareEnvironment,
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
 ): Promise<Response> {
   const url = new URL(request.url);
   const color = url.searchParams.get("color") || "aquamarine";
 
-  const count = await getRepoViewCount(env, owner, repo);
+  const count = await getRepoViewCount(env, namespace, project);
   return generateBadgeResponse(count, color);
 }
 export class MyMCP extends McpAgent {
@@ -131,9 +131,9 @@ export default {
     if (pathname.startsWith("/badge/")) {
       const parts = pathname.split("/").filter(Boolean);
       if (parts.length >= 3 && parts[0] === "badge") {
-        const owner = parts[1];
-        const repo = parts[2];
-        return handleBadgeRequest(request, env, owner, repo);
+        const namespace = parts[1];
+        const project = parts[2];
+        return handleBadgeRequest(request, env, namespace, project);
       }
     }
 

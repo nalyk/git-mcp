@@ -1,7 +1,7 @@
-export type UrlType = "subdomain" | "github" | "unknown";
+export type UrlType = "subdomain" | "gitlab" | "unknown";
 export type MinimalRepoData = {
-  owner: string | null;
-  repo: string | null;
+  namespace: string | null;
+  project: string | null;
 };
 
 export type RepoData = MinimalRepoData & {
@@ -19,8 +19,8 @@ export function getRepoData(requestData: RequestData): RepoData {
 
   // Parse the URL if provided
   const logData: LogData = {
-    owner: null,
-    repo: null,
+    namespace: null,
+    project: null,
     host: requestHost,
     urlType: "unknown",
     requestUrl,
@@ -39,11 +39,11 @@ export function getRepoData(requestData: RequestData): RepoData {
   }
   const path = fullUrl.pathname.split("/").filter(Boolean).join("/");
 
-  // Check for subdomain pattern: {subdomain}.gitmcp.io/{path}
+  // Check for subdomain pattern: {namespace}.gitmcp.io/{project}
   if (requestHost.includes(".gitmcp.io")) {
     const subdomain = requestHost.split(".")[0];
-    logData.owner = subdomain;
-    logData.repo = path;
+    logData.namespace = subdomain;
+    logData.project = path;
     logData.urlType = "subdomain";
     log("getRepoDataLog", JSON.stringify(logData, null, 2));
 
@@ -55,34 +55,66 @@ export function getRepoData(requestData: RequestData): RepoData {
     }
 
     return {
-      owner: subdomain,
-      repo: path || null,
+      namespace: subdomain,
+      project: path || null,
       host: requestHost,
       urlType: "subdomain",
     };
   }
-  // Check for github repo pattern: gitmcp.io/{owner}/{repo}, HOST_TEMP_URL/{owner}/{repo},
-  // or git-mcp-git-{preview}-git-mcp.vercel.app/{owner}/{repo}
+  // Check for gitlab repo pattern: gitmcp.io/{namespace}/{project}, HOST_TEMP_URL/{namespace}/{project}
+  // Note: GitLab supports nested namespaces (group/subgroup/project)
+  // For simplicity, we'll treat the last segment as project and everything before as namespace
   else if (
     requestHost === "gitmcp.io" ||
     requestHost === HOST_TEMP_URL ||
     requestHost === "git-mcp.idosalomon.workers.dev" ||
     requestHost.includes("localhost")
   ) {
-    // Extract owner/repo from path
+    // Extract namespace/project from path
+    // GitLab supports nested groups, so namespace can be multi-level
     const splitPath = path.split("/");
-    const owner = splitPath.at(0) ?? null;
-    let repo = splitPath.at(1) ?? null;
-    // FIXME: this is a hack to support the chat page
-    if (owner == "docs" && repo == "chat") {
-      repo = null;
+
+    // We need at least 2 segments for namespace/project
+    if (splitPath.length < 2) {
+      // Handle special case for docs
+      const namespace = splitPath.at(0) ?? null;
+      let project = null;
+
+      // FIXME: this is a hack to support the chat page
+      if (namespace == "docs") {
+        project = null;
+      }
+
+      logData.namespace = namespace;
+      logData.project = project;
+      logData.urlType = "gitlab";
+      log("getRepoDataLog", JSON.stringify(logData, null, 2));
+
+      if (!namespace && !project) {
+        console.error("Invalid repository data:", logData);
+        throw new Error(
+          `Invalid repository data: ${JSON.stringify(logData, null, 2)}`,
+        );
+      }
+
+      return {
+        namespace,
+        project,
+        host: requestHost,
+        urlType: "gitlab",
+      };
     }
-    logData.owner = owner;
-    logData.repo = repo;
-    logData.urlType = "github";
+
+    // Last segment is the project, everything before is the namespace
+    const project = splitPath.pop() ?? null;
+    const namespace = splitPath.join("/");
+
+    logData.namespace = namespace;
+    logData.project = project;
+    logData.urlType = "gitlab";
     log("getRepoDataLog", JSON.stringify(logData, null, 2));
 
-    if (!owner && !repo) {
+    if (!namespace && !project) {
       console.error("Invalid repository data:", logData);
       throw new Error(
         `Invalid repository data: ${JSON.stringify(logData, null, 2)}`,
@@ -90,10 +122,10 @@ export function getRepoData(requestData: RequestData): RepoData {
     }
 
     return {
-      owner,
-      repo,
+      namespace,
+      project,
       host: requestHost,
-      urlType: "github",
+      urlType: "gitlab",
     };
   }
 
@@ -101,8 +133,8 @@ export function getRepoData(requestData: RequestData): RepoData {
   log("getRepoDataLog", JSON.stringify(logData, null, 2));
 
   return {
-    owner: null,
-    repo: null,
+    namespace: null,
+    project: null,
     host: requestHost,
     urlType: "unknown",
   };
@@ -115,42 +147,47 @@ function log(...args: any[]) {
 export const HOST_TEMP_URL = "remote-mcp-server-cf.idosalomon.workers.dev";
 
 export function getRepoDataFromUrl(url: string): MinimalRepoData {
-  // Handle simple owner/repo format
+  // Handle simple namespace/project format
   if (!url.includes("/") && !url.includes(".")) {
-    return { owner: null, repo: null };
+    return { namespace: null, project: null };
   }
 
   // Remove protocol if present
   const urlWithoutProtocol = url.replace(/^https?:\/\//, "");
 
   const urlReference = urlWithoutProtocol
-    .replace(".github.io", ".gitmcp.io")
-    .replace(/^github\.com/, "gitmcp.io")
+    .replace(".gitlab.io", ".gitmcp.io")
+    .replace(/^gitlab\.com/, "gitmcp.io")
     .replace(HOST_TEMP_URL, "gitmcp.io")
     .replace("git-mcp.idosalomon.workers.dev", "gitmcp.io")
     .replace(/^localhost:?[0-9]+/, "gitmcp.io");
 
   // Different URL patterns
   const patterns = [
-    // gitmcp.io/owner/repo
-    /^(?:www\.)?gitmcp\.io\/([^\/]+)\/([^\/]+)/,
-    // owner.gitmcp.io/repo
+    // gitmcp.io/namespace/project (also supports nested: gitmcp.io/group/subgroup/project)
+    /^(?:www\.)?gitmcp\.io\/(.+)\/([^\/]+)$/,
+    // namespace.gitmcp.io/project
     /^(?:www\.)?([^\/]+)\.gitmcp\.io\/([^\/]+)/,
-    // owner.gitmcp.io
-    /^(?:www\.)?([^\/]+)\.gitmcp\.io/,
+    // namespace.gitmcp.io
+    /^(?:www\.)?([^\/]+)\.gitmcp\.io$/,
     // gitmcp.io/docs
-    /^(?:www\.)?gitmcp\.io\/(docs)/,
-    // Simple owner/repo format
-    /^([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)/,
+    /^(?:www\.)?gitmcp\.io\/(docs)$/,
+    // Simple namespace/project format (supports nested: group/subgroup/project)
+    /^(.+)\/([^\/]+)$/,
   ];
 
   for (const pattern of patterns) {
     const match = urlReference.match(pattern);
     if (match) {
-      return { owner: match[1], repo: match[2] };
+      // For patterns with 2 capture groups
+      if (match[2] !== undefined) {
+        return { namespace: match[1], project: match[2] };
+      }
+      // For patterns with 1 capture group (like docs)
+      return { namespace: match[1], project: null };
     }
   }
 
   // Default fallback
-  return { owner: null, repo: null };
+  return { namespace: null, project: null };
 }

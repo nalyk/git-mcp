@@ -45,8 +45,8 @@ interface MCPContextType {
   selectedMcpServers: string[];
   setSelectedMcpServers: (serverIds: string[]) => void;
   mcpServersForApi: MCPServerApi[];
-  owner: string;
-  repo: string | null;
+  namespace: string;
+  project: string | null;
   serverNameText: string;
 }
 
@@ -54,11 +54,11 @@ const MCPContext = createContext<MCPContextType | undefined>(undefined);
 
 export function MCPProvider(props: {
   children: React.ReactNode;
-  owner: string;
-  repo: string | null;
+  namespace: string;
+  project: string | null;
   persist?: boolean;
 }) {
-  const { children, owner, repo, persist = false } = props;
+  const { children, namespace, project, persist = false } = props;
   const [mcpServersFromLocalStorage, setMcpServersFromLocalStorage] =
     useLocalStorage<MCPServer[]>(STORAGE_KEYS.MCP_SERVERS, []);
   const [
@@ -73,8 +73,8 @@ export function MCPProvider(props: {
     useState<string[]>([]);
 
   const { serverNameText, serverUrl, serverName } = useMemo(() => {
-    const repoName = repo || "";
-    if (owner == "cloudflare" && repoName == "docs") {
+    const repoName = project || "";
+    if (namespace == "cloudflare" && repoName == "docs") {
       return {
         serverNameText: "Cloudflare docs",
         serverUrl: "https://docs.mcp.cloudflare.com/sse",
@@ -83,20 +83,20 @@ export function MCPProvider(props: {
     }
     return {
       serverNameText: repoName ? `${repoName} docs` : "Github docs",
-      serverUrl: ["https://gitmcp.io", owner, repo].filter(Boolean).join("/"),
+      serverUrl: ["https://gitmcp.io", namespace, project].filter(Boolean).join("/"),
       serverName: repoName ? `${repoName} Docs` : "MCP Docs",
     };
-  }, [owner, repo]);
+  }, [namespace, project]);
 
   const gitMcpServer = useMemo<MCPServer>(() => {
     return {
-      id: ["gitMcp", owner, repo].filter(Boolean).join("-"),
+      id: ["gitMcp", namespace, project].filter(Boolean).join("-"),
       name: serverName,
       url: serverUrl,
       type: "sse",
       isFixed: true,
     };
-  }, [owner, repo]);
+  }, [namespace, project]);
 
   const {
     mcpServers,
@@ -181,8 +181,8 @@ export function MCPProvider(props: {
         selectedMcpServers,
         setSelectedMcpServers,
         mcpServersForApi,
-        owner,
-        repo,
+        namespace,
+        project,
         serverNameText,
       }}
     >

@@ -24,7 +24,7 @@ describe("enforceToolNameLengthLimit", () => {
     expect(totalNameLength).toBeLessThanOrEqual(LIMIT);
   });
 
-  it("should return 'repo' if the repo name is too long", () => {
+  it("should return 'project' if the project name is too long", () => {
     const repoName = "nestjs-context-logger-is-long";
     const toolName = enforceToolNameLengthLimit("search_", repoName, "_docs");
     const serverNameLength = generateServerName(repoName).length;
@@ -32,7 +32,7 @@ describe("enforceToolNameLengthLimit", () => {
     const totalNameLength = toolName.length + serverNameLength;
     expect(totalNameLength).toBeLessThanOrEqual(LIMIT);
   });
-  it("should return nothing if the repo name is too long", () => {
+  it("should return nothing if the project name is too long", () => {
     const repoName = "nestjs-context-logger-very-very-long";
     const toolName = enforceToolNameLengthLimit("search_", repoName, "_docs");
     expect(toolName).toBe("search_docs");

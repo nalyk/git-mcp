@@ -7,9 +7,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
     return [];
   }
-  const { owner, repo, url } = data;
-  const repoDescription = repo ? `${owner}/${repo}` : "any GitHub repo";
-  if (isChatPage({ owner, repo, url })) {
+  const { namespace, project, url } = data;
+  const repoDescription = project ? `${namespace}/${project}` : "any GitLab project";
+  if (isChatPage({ namespace, project, url })) {
     return [
       { title: "GitMCP Chat" },
       {
@@ -32,12 +32,12 @@ export const loader = async ({ request }: { request: Request }) => {
   const host = url.host;
   const pathname = url.pathname;
 
-  const { urlType, owner, repo } = getRepoData({
+  const { urlType, namespace, project } = getRepoData({
     requestHost: host,
     requestUrl: pathname,
   });
 
-  return { urlType, owner, repo, url: url.toString() };
+  return { urlType, namespace, project, url: url.toString() };
 };
 
 export function HydrateFallback() {
@@ -49,29 +49,29 @@ export default function ContentPage({
 }: {
   loaderData: Awaited<ReturnType<typeof loader>>;
 }) {
-  const { urlType, owner, repo, url } = loaderData;
+  const { urlType, namespace, project, url } = loaderData;
 
-  if (isChatPage({ owner, repo, url })) {
-    return <ChatPageServer owner={owner} repo={repo} />;
+  if (isChatPage({ namespace, project, url })) {
+    return <ChatPageServer namespace={namespace} project={project} />;
   }
 
-  return <Content urlType={urlType} owner={owner} repo={repo} url={url} />;
+  return <Content urlType={urlType} namespace={namespace} project={project} url={url} />;
 }
 
 function isChatPage({
-  owner,
-  repo,
+  namespace,
+  project,
   url,
 }: {
-  owner: string | null;
-  repo: string | null;
+  namespace: string | null;
+  project: string | null;
   url: string;
 }) {
-  // is a valid repo
-  const isValid = (owner && repo) || (!repo && owner == "docs");
+  // is a valid project
+  const isValid = (namespace && project) || (!project && namespace == "docs");
   if (!isValid) {
     return false;
   }
   // is a chat page
-  return owner != "chat" && repo != "chat" && url.endsWith("/chat");
+  return namespace != "chat" && project != "chat" && url.endsWith("/chat");
 }

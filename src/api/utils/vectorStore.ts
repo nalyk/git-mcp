@@ -42,26 +42,26 @@ interface Vectorize {
 /**
  * Generate a namespace for a repository
  * Each repository gets its own namespace to improve query performance
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @returns Namespace string
  */
-export function getRepoNamespace(owner: string, repo: string): string {
-  // Format: owner:repo
+export function getRepoNamespace(namespace: string, project: string): string {
+  // Format: namespace:project
   // This creates a unique namespace per repository
-  return `${owner}:${repo}`;
+  return `${namespace}:${project}`;
 }
 
 /**
  * Generate a vector ID for a specific document chunk
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param chunkIndex - Index of the chunk
  * @returns Unique ID for the vector
  */
 export function getVectorId(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   chunkIndex: number,
 ): string {
   // With namespaces, vector IDs only need to be unique within the namespace
@@ -644,8 +644,8 @@ export function chunkText(
 // Define our metadata structure as a record with string keys and any values
 interface VectorMetadata {
   chunk: string;
-  owner: string;
-  repo: string;
+  namespace: string;
+  project: string;
   chunkIndex: number;
   [key: string]: any; // Add index signature to make it compatible with Dict
 }
@@ -653,22 +653,22 @@ interface VectorMetadata {
 /**
  * Store documentation content in vector store
  * Using repository-specific namespaces and distinguishing documents via metadata and IDs
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param content - Documentation content
  * @param fileName - documentation file name
  * @param vectorize - Cloudflare Vectorize client (optional)
  * @returns Number of vectors stored
  */
 export async function storeDocumentationVectors(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   content: string,
   fileName: string,
   vectorize?: Vectorize,
 ): Promise<number> {
   try {
-    console.log(`Storing vectors for ${owner}/${repo}`);
+    console.log(`Storing vectors for ${namespace}/${project}`);
 
     // Check if Vectorize is available
     if (!vectorize) {
@@ -677,10 +677,10 @@ export async function storeDocumentationVectors(
     }
 
     // Generate namespace for this repository
-    const namespace = getRepoNamespace(owner, repo);
+    const namespace = getRepoNamespace(namespace, project);
     console.log(`Using namespace: ${namespace}`);
 
-    // First delete any existing vectors for this repo's namespace
+    // First delete any existing vectors for this project's namespace
     try {
       // Query existing vectors in this namespace
       const existingVectors = await vectorize.query(
@@ -710,7 +710,7 @@ export async function storeDocumentationVectors(
 
     // Use specialized documentation chunking for better results
     const chunks = chunkDocumentation(content, fileName);
-    console.log(`Created ${chunks.length} chunks for ${owner}/${repo}`);
+    console.log(`Created ${chunks.length} chunks for ${namespace}/${project}`);
 
     // Generate embeddings and upsert vectors
     const vectors = [];
@@ -718,7 +718,7 @@ export async function storeDocumentationVectors(
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const embedding = await getEmbeddings(chunk);
-      const id = getVectorId(owner, repo, i);
+      const id = getVectorId(namespace, project, i);
 
       vectors.push({
         id,
@@ -726,8 +726,8 @@ export async function storeDocumentationVectors(
         namespace: namespace, // Add namespace to each vector
         metadata: {
           chunk,
-          owner,
-          repo,
+          namespace,
+          project,
           chunkIndex: i,
           timestamp: Date.now(), // e.g., "2025-04-06T20:52:37.123Z"
         },
@@ -740,7 +740,7 @@ export async function storeDocumentationVectors(
 
     return vectors.length;
   } catch (error) {
-    console.error(`Error storing vectors for ${owner}/${repo}:`, error);
+    console.error(`Error storing vectors for ${namespace}/${project}:`, error);
     throw error;
   }
 }
@@ -839,16 +839,16 @@ function calculateKeywordMatchScore(text: string, query: string): number {
  * Search for relevant documentation
  * With improved post-processing for better relevance ranking
  * Uses namespace-based querying for better performance
- * @param owner - Repository owner
- * @param repo - Repository name
+ * @param namespace - Repository namespace
+ * @param project - Repository name
  * @param query - Search query
  * @param limit - Maximum number of results to return
  * @param vectorize - Cloudflare Vectorize client (optional)
  * @returns Array of relevant document chunks with scores
  */
 export async function searchDocumentation(
-  owner: string,
-  repo: string,
+  namespace: string,
+  project: string,
   query: string,
   limit: number = 5,
   vectorize: Vectorize,
@@ -861,7 +861,7 @@ export async function searchDocumentation(
     }
 
     // Generate namespace for this repository
-    const namespace = getRepoNamespace(owner, repo);
+    const namespace = getRepoNamespace(namespace, project);
     console.log(`Searching in namespace: ${namespace}`);
 
     const queryEmbedding = await getEmbeddings(query);
@@ -918,7 +918,7 @@ export async function searchDocumentation(
       score: result.combinedScore,
     }));
   } catch (error) {
-    console.error(`Error searching documentation for ${owner}/${repo}:`, error);
+    console.error(`Error searching documentation for ${namespace}/${project}:`, error);
     return [];
   }
 }

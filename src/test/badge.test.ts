@@ -39,12 +39,12 @@ describe("Badge utilities", () => {
       const mockResponse = new Response(JSON.stringify({ count: 42 }));
       mockStub.fetch.mockResolvedValue(mockResponse);
 
-      const result = await incrementRepoViewCount(mockEnv, "owner", "repo");
+      const result = await incrementRepoViewCount(mockEnv, "namespace", "project");
 
-      expect(mockNamespace.idFromName).toHaveBeenCalledWith("owner/repo");
+      expect(mockNamespace.idFromName).toHaveBeenCalledWith("namespace/project");
       expect(mockNamespace.get).toHaveBeenCalledWith(mockId);
       expect(mockStub.fetch).toHaveBeenCalledWith(
-        "https://counter/owner/repo",
+        "https://counter/namespace/project",
         {
           method: "POST",
           signal: expect.any(AbortSignal),
@@ -56,7 +56,7 @@ describe("Badge utilities", () => {
     it("should handle errors gracefully", async () => {
       mockStub.fetch.mockRejectedValue(new Error("Fetch error"));
 
-      const result = await incrementRepoViewCount(mockEnv, "owner", "repo");
+      const result = await incrementRepoViewCount(mockEnv, "namespace", "project");
 
       expect(result).toBe(0);
     });
@@ -65,7 +65,7 @@ describe("Badge utilities", () => {
       const mockResponse = new Response("Error", { status: 500 });
       mockStub.fetch.mockResolvedValue(mockResponse);
 
-      const result = await incrementRepoViewCount(mockEnv, "owner", "repo");
+      const result = await incrementRepoViewCount(mockEnv, "namespace", "project");
 
       expect(result).toBe(0);
     });
@@ -76,12 +76,12 @@ describe("Badge utilities", () => {
       const mockResponse = new Response(JSON.stringify({ count: 42 }));
       mockStub.fetch.mockResolvedValue(mockResponse);
 
-      const result = await getRepoViewCount(mockEnv, "owner", "repo");
+      const result = await getRepoViewCount(mockEnv, "namespace", "project");
 
-      expect(mockNamespace.idFromName).toHaveBeenCalledWith("owner/repo");
+      expect(mockNamespace.idFromName).toHaveBeenCalledWith("namespace/project");
       expect(mockNamespace.get).toHaveBeenCalledWith(mockId);
       expect(mockStub.fetch).toHaveBeenCalledWith(
-        "https://counter/owner/repo",
+        "https://counter/namespace/project",
         {
           method: "GET",
           signal: expect.any(AbortSignal),
@@ -93,7 +93,7 @@ describe("Badge utilities", () => {
     it("should handle errors gracefully", async () => {
       mockStub.fetch.mockRejectedValue(new Error("Fetch error"));
 
-      const result = await getRepoViewCount(mockEnv, "owner", "repo");
+      const result = await getRepoViewCount(mockEnv, "namespace", "project");
 
       expect(result).toBe(0);
     });
@@ -102,14 +102,14 @@ describe("Badge utilities", () => {
       const mockResponse = new Response("Error", { status: 500 });
       mockStub.fetch.mockResolvedValue(mockResponse);
 
-      const result = await getRepoViewCount(mockEnv, "owner", "repo");
+      const result = await getRepoViewCount(mockEnv, "namespace", "project");
 
       expect(result).toBe(0);
     });
   });
 
   describe("withViewTracking", () => {
-    it("should track views when owner and repo are provided", async () => {
+    it("should track views when namespace and project are provided", async () => {
       // Mock the increment function
       const incrementSpy = vi
         .spyOn(await import("../api/utils/badge"), "incrementRepoViewCount")
@@ -119,7 +119,7 @@ describe("Badge utilities", () => {
       const originalCallback = vi.fn().mockResolvedValue("result");
 
       // Create the wrapped callback
-      const repoData = { owner: "idosal", repo: "git-mcp" };
+      const repoData = { namespace: "idosal", project: "git-mcp" };
       const wrappedCallback = withViewTracking(
         mockEnv,
         mockCtx,
@@ -143,12 +143,12 @@ describe("Badge utilities", () => {
       incrementSpy.mockRestore();
     });
 
-    it("should not track views when owner or repo is missing", async () => {
+    it("should not track views when namespace or project is missing", async () => {
       // Create a mock original callback
       const originalCallback = vi.fn().mockResolvedValue("result");
 
-      // Create the wrapped callback with missing repo
-      const repoData = { owner: "owner", repo: null };
+      // Create the wrapped callback with missing project
+      const repoData = { namespace: "namespace", project: null };
       const wrappedCallback = withViewTracking(
         mockEnv,
         mockCtx,
@@ -171,7 +171,7 @@ describe("Badge utilities", () => {
       const originalCallback = vi.fn().mockResolvedValue("result");
 
       // Create the wrapped callback
-      const repoData = { owner: "idosal", repo: "git-mcp" };
+      const repoData = { namespace: "idosal", project: "git-mcp" };
       const wrappedCallback = withViewTracking(
         mockEnv,
         {},

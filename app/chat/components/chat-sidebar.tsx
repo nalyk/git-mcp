@@ -142,7 +142,7 @@ export function ChatSidebar() {
                 >
                   <Github className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="flex-grow text-sm text-foreground/80">
-                    GitHub
+                    GitLab
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
